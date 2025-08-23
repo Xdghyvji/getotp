@@ -1,5 +1,4 @@
-import React from 'react';
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, createContext, useContext } from 'react';
 
 // --- FIREBASE IMPORTS ---
 import { initializeApp } from 'firebase/app';
@@ -43,9 +42,41 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 
+// --- CURRENCY CONTEXT ---
+const CurrencyContext = createContext();
+
+const conversionRates = {
+    USD: { rate: 1, symbol: '$' },
+    PKR: { rate: 278, symbol: 'Rs' },
+    INR: { rate: 83, symbol: '₹' },
+};
+
+const CurrencyProvider = ({ children }) => {
+    const [currency, setCurrency] = useState('USD');
+
+    const convertCurrency = (amountInUsd) => {
+        if (typeof amountInUsd !== 'number') return '0.00';
+        const { rate } = conversionRates[currency];
+        return (amountInUsd * rate).toFixed(2);
+    };
+
+    const currencySymbol = conversionRates[currency].symbol;
+
+    return (
+        <CurrencyContext.Provider value={{ currency, setCurrency, convertCurrency, currencySymbol }}>
+            {children}
+        </CurrencyContext.Provider>
+    );
+};
+
+const useCurrency = () => useContext(CurrencyContext);
+
 
 // --- ICONS (using inline SVGs for simplicity) ---
+const MenuIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12" /><line x1="4" x2="20" y1="6" y2="6" /><line x1="4" x2="20" y1="18" y2="18" /></svg>;
+const XIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="6" y1="6" y2="18" /><line x1="6" x2="18" y1="6" y2="18" /></svg>;
 const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>;
+const StarIcon = ({ isFavorite }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={isFavorite ? "#FFC107" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>;
 const ChevronDownIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>;
 const GoogleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/><path d="M1 1h22v22H1z" fill="none"/></svg>;
 const ClockIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>;
@@ -93,9 +124,10 @@ const ThemeToggle = ({ theme, setTheme }) => {
 
 // --- Main Page Components ---
 
-const Header = ({ user, setPage, theme, setTheme }) => {
+const Header = ({ user, profile, setPage, theme, setTheme }) => {
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const profileMenuRef = useRef(null);
+    const { convertCurrency, currencySymbol } = useCurrency();
 
     const handleLogout = () => signOut(auth).catch(error => console.error("Sign out error", error));
 
@@ -123,6 +155,9 @@ const Header = ({ user, setPage, theme, setTheme }) => {
                         <ThemeToggle theme={theme} setTheme={setTheme} />
                         {user ? (
                             <>
+                                <div className="bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300 font-bold p-2 rounded-lg text-sm">
+                                    {currencySymbol}{convertCurrency(profile?.balance || 0)}
+                                </div>
                                 <Button onClick={() => setPage('recharge')} variant="primary">Recharge</Button>
                                 <div className="relative" ref={profileMenuRef}>
                                     <button onClick={() => setIsProfileOpen(!isProfileOpen)} className="flex items-center">
@@ -203,29 +238,46 @@ const Footer = ({ setPage }) => (
     </footer>
 );
 
-const Sidebar = ({ user, setPage }) => {
-    const [services] = useState([
-        { name: 'Amazon', qty: 123, price: 2.50, icon: '📦' },
-        { name: 'Facebook', qty: 456, price: 1.75, icon: '👍' },
-        { name: 'Telegram', qty: 789, price: 1.00, icon: '✈️' },
-        { name: 'Whatsapp', qty: 234, price: 3.00, icon: '💬' },
-        { name: 'Google/Youtube', qty: 567, price: 2.00, icon: '▶️' },
-        { name: 'Instagram', qty: 890, price: 2.25, icon: '📸' },
-    ]);
-    const [countries] = useState([
-        { name: 'England', code: 'gb' }, { name: 'USA', code: 'us' },
-        { name: 'Pakistan', code: 'pk' }, { name: 'India', code: 'in' },
-        { name: 'Canada', code: 'ca' }, { name: 'Germany', code: 'de' },
-        { name: 'France', code: 'fr' }, { name: 'Brazil', code: 'br' },
-    ]);
+const Sidebar = ({ user, setPage, onPurchase }) => {
+    const [services, setServices] = useState([]);
+    const [servers, setServers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const { convertCurrency, currencySymbol } = useCurrency();
+    const [selectedServer, setSelectedServer] = useState(null);
+    const [showAllServices, setShowAllServices] = useState(false);
+    const [showAllServers, setShowAllServers] = useState(false);
 
-    const handlePurchase = (service) => {
+    useEffect(() => {
+        const unsubServices = onSnapshot(collection(db, "services"), (snapshot) => {
+            setServices(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        });
+        const unsubServers = onSnapshot(collection(db, "servers"), (snapshot) => {
+            const serverData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setServers(serverData);
+            if(serverData.length > 0 && !selectedServer) {
+                setSelectedServer(serverData[0]);
+            }
+        });
+
+        setLoading(false);
+
+        return () => { unsubServices(); unsubServers(); };
+    }, [selectedServer]);
+
+    const handlePurchaseClick = (service) => {
         if (!user) {
             setPage('login');
             return;
         }
-        alert(`Purchasing ${service.name}...`);
+        if (!selectedServer) {
+            alert("Please select a country/server first.");
+            return;
+        }
+        onPurchase(service, selectedServer);
     };
+
+    const displayedServices = showAllServices ? services : services.slice(0, 10);
+    const displayedServers = showAllServers ? servers : servers.slice(0, 10);
 
     return (
         <aside className="w-full md:w-1/3 lg:w-1/4">
@@ -237,20 +289,24 @@ const Sidebar = ({ user, setPage }) => {
                         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     </div>
                     <div className="mt-2 h-64 overflow-y-auto">
-                        {services.map(service => (
-                            <div key={service.name} onClick={() => handlePurchase(service)} className="flex items-center justify-between p-2 hover:bg-blue-50 dark:hover:bg-gray-700 rounded-md cursor-pointer">
+                        {loading ? <Spinner /> : displayedServices.map(service => (
+                            <div key={service.id} onClick={() => handlePurchaseClick(service)} className="flex items-center justify-between p-2 hover:bg-blue-50 dark:hover:bg-gray-700 rounded-md cursor-pointer">
                                 <div className="flex items-center space-x-3">
-                                    <span className="text-2xl">{service.icon}</span>
+                                    <img src={`https://logo.clearbit.com/${service.name.toLowerCase().replace(/\s+/g, '')}.com`} onError={(e) => { e.target.onerror = null; e.target.src=`https://ui-avatars.com/api/?name=${service.name.charAt(0)}&background=random`}} alt={service.name} className="w-8 h-8 rounded-full" />
                                     <span className="font-medium text-gray-800 dark:text-gray-200">{service.name}</span>
                                 </div>
                                 <div className="text-right text-sm">
-                                    <p className="text-gray-500 dark:text-gray-400">{service.qty} pcs.</p>
-                                    <p className="font-bold text-blue-600">${service.price.toFixed(2)}</p>
+                                    <p className="text-gray-500 dark:text-gray-400">{service.qty || 0} pcs.</p>
+                                    <p className="font-bold text-blue-600">{currencySymbol}{convertCurrency(service.price)}</p>
                                 </div>
                             </div>
                         ))}
                     </div>
+                    {!showAllServices && services.length > 10 && (
+                        <button onClick={() => setShowAllServices(true)} className="text-blue-600 text-sm font-semibold mt-2">See More...</button>
+                    )}
                 </div>
+
                 <div>
                     <h3 className="font-bold mb-2 text-gray-800 dark:text-gray-200">2. Select country</h3>
                     <div className="relative">
@@ -258,20 +314,15 @@ const Sidebar = ({ user, setPage }) => {
                         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     </div>
                     <div className="mt-2 h-48 overflow-y-auto">
-                        {countries.map(country => (
-                            <div key={country.name} className="flex items-center p-2 hover:bg-blue-50 dark:hover:bg-gray-700 rounded-md cursor-pointer">
-                                <img src={`https://flagcdn.com/w20/${country.code}.png`} alt={`${country.name} flag`} className="w-5 h-auto" />
-                                <span className="ml-3 font-medium text-gray-800 dark:text-gray-200">{country.name}</span>
+                        {loading ? <Spinner /> : displayedServers.map(server => (
+                            <div key={server.id} onClick={() => setSelectedServer(server)} className={`flex items-center p-2 rounded-md cursor-pointer ${selectedServer?.id === server.id ? 'bg-blue-100 dark:bg-blue-900/50' : 'hover:bg-blue-50 dark:hover:bg-gray-700'}`}>
+                                <span className="ml-3 font-medium text-gray-800 dark:text-gray-200">{server.name} ({server.location})</span>
                             </div>
                         ))}
                     </div>
-                </div>
-                <div>
-                    <h3 className="font-bold mb-2 text-gray-800 dark:text-gray-200">3. Select operator</h3>
-                    <div className="flex space-x-2">
-                        <button className="flex-1 py-2 border rounded-md bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/50 dark:text-blue-300 dark:border-blue-700">Any operator</button>
-                        <button className="flex-1 py-2 border dark:border-gray-600 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">Choose</button>
-                    </div>
+                     {!showAllServers && servers.length > 10 && (
+                        <button onClick={() => setShowAllServers(true)} className="text-blue-600 text-sm font-semibold mt-2">See More...</button>
+                    )}
                 </div>
             </Card>
         </aside>
@@ -355,7 +406,7 @@ const HistoryTable = ({ title, headers, data, isLoading }) => (
 
 const NumbersHistory = ({ user }) => {
     const [history, setHistory] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (!user) return;
@@ -369,17 +420,17 @@ const NumbersHistory = ({ user }) => {
                     date: data.createdAt.toDate().toLocaleString(),
                 };
             });
-            setHistory(orders); setIsLoading(false);
+            setHistory(orders); setLoading(false);
         });
         return () => unsubscribe();
     }, [user]);
 
-    return <HistoryTable title="Numbers History" headers={["Phone", "Product", "Price", "Status", "Date"]} data={history} isLoading={isLoading} />;
+    return <HistoryTable title="Numbers History" headers={["Phone", "Product", "Price", "Status", "Date"]} data={history} isLoading={loading} />;
 };
 
 const ProfileSettings = ({ user, profile }) => {
     const [displayName, setDisplayName] = useState(profile?.displayName || '');
-    const [isLoading, setIsLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
 
     useEffect(() => {
@@ -390,7 +441,7 @@ const ProfileSettings = ({ user, profile }) => {
         e.preventDefault();
         if (displayName === profile?.displayName) return;
         
-        setIsLoading(true); setMessage('');
+        setLoading(true); setMessage('');
         try {
             await updateProfile(auth.currentUser, { displayName });
             const userDocRef = doc(db, "users", user.uid);
@@ -400,7 +451,7 @@ const ProfileSettings = ({ user, profile }) => {
             console.error("Error updating profile: ", error);
             setMessage('Failed to update profile.');
         }
-        setIsLoading(false);
+        setLoading(false);
     };
 
     return (
@@ -416,7 +467,7 @@ const ProfileSettings = ({ user, profile }) => {
             <form onSubmit={handleUpdateProfile} className="space-y-4 max-w-md">
                 <div>
                     <label htmlFor="displayName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Display Name</label>
-                    <input type="text" id="displayName" value={displayName} onChange={(e) => setDisplayName(e.target.value)}
+                    <input type="text" id="displayName" value={displayName} onChange={e => setDisplayName(e.target.value)}
                         className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-transparent" />
                 </div>
                 <div>
@@ -424,8 +475,8 @@ const ProfileSettings = ({ user, profile }) => {
                     <input type="email" id="email" value={profile?.email || ''} disabled className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-gray-100 dark:bg-gray-700 cursor-not-allowed"/>
                 </div>
                 <div className="pt-2">
-                    <Button type="submit" disabled={isLoading || displayName === profile?.displayName}>
-                        {isLoading ? <Spinner /> : 'Save Changes'}
+                    <Button type="submit" disabled={loading || displayName === profile?.displayName}>
+                        {loading ? <Spinner /> : 'Save Changes'}
                     </Button>
                 </div>
                 {message && <p className={`mt-4 text-sm ${message.includes('success') ? 'text-green-600' : 'text-red-600'}`}>{message}</p>}
@@ -451,15 +502,9 @@ const LoginPage = () => {
             } else {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
-                // Create user profile in Firestore
                 await setDoc(doc(db, "users", user.uid), {
-                    uid: user.uid,
-                    email: user.email,
-                    displayName: user.email.split('@')[0], // Default display name
-                    photoURL: '',
-                    balance: 0,
-                    rating: 96,
-                    createdAt: new Date()
+                    uid: user.uid, email: user.email, displayName: user.email.split('@')[0],
+                    photoURL: '', balance: 0, rating: 96, createdAt: new Date()
                 });
             }
         } catch (err) {
@@ -492,8 +537,8 @@ const LoginPage = () => {
         <div className="w-full max-w-md mx-auto">
             <Card className="p-8">
                 <div className="flex justify-center mb-6">
-                    <button onClick={() => setIsLogin(true)} className={`px-4 py-2 font-semibold ${isLogin ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}>Login</button>
-                    <button onClick={() => setIsLogin(false)} className={`px-4 py-2 font-semibold ${!isLogin ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'}`}>Register</button>
+                    <button onClick={() => setIsLogin(true)} className={`px-4 py-2 font-semibold ${isLogin ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 dark:text-gray-400'}`}>Login</button>
+                    <button onClick={() => setIsLogin(false)} className={`px-4 py-2 font-semibold ${!isLogin ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 dark:text-gray-400'}`}>Register</button>
                 </div>
                 <form onSubmit={handleAuthAction} className="space-y-4">
                     <div>
@@ -559,16 +604,46 @@ const ContentPage = ({ title }) => (
     </div>
 );
 
-const MainLayout = ({ user, page, setPage }) => {
-    const [profile, setProfile] = useState(null);
+const MainLayout = ({ user, page, setPage, profile }) => {
+    const [activeOrder, setActiveOrder] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
 
-    useEffect(() => {
-        if (!user) return;
-        const unsub = onSnapshot(doc(db, "users", user.uid), (doc) => setProfile(doc.data()));
-        return () => unsub();
-    }, [user]);
+    const handlePurchase = async (service, server) => {
+        setIsLoading(true);
+        // This is where you call your Netlify function to get a number
+        // For now, we'll simulate a successful response
+        const fakeApiResponse = {
+            id: Date.now(),
+            phone: `+${Math.floor(1000000000 + Math.random() * 9000000000)}`,
+            expires: new Date(Date.now() + 15 * 60000).toISOString(),
+        };
+
+        const newOrder = {
+            userId: user.uid,
+            phone: fakeApiResponse.phone,
+            product: service.name,
+            price: service.price,
+            provider: service.provider,
+            server: server.name,
+            status: "PENDING",
+            createdAt: new Date(),
+            expires: new Date(fakeApiResponse.expires),
+            sms: null,
+        };
+
+        try {
+            const orderRef = await addDoc(collection(db, "users", user.uid, "orders"), newOrder);
+            setActiveOrder({ id: orderRef.id, ...newOrder });
+        } catch (e) {
+            console.error("Error creating order: ", e);
+            alert("Failed to create order.");
+        }
+        setIsLoading(false);
+    };
 
     const renderContent = () => {
+        if (activeOrder) return <ActiveOrder order={activeOrder} setActiveOrder={setActiveOrder} />;
+
         const contentPages = ['cookies', 'delivery', 'terms', 'privacy', 'refund', 'about', 'contacts', 'rules', 'developers'];
         if (contentPages.includes(page)) {
             return <ContentPage title={page.charAt(0).toUpperCase() + page.slice(1).replace('-', ' ')} />;
@@ -587,43 +662,102 @@ const MainLayout = ({ user, page, setPage }) => {
     return (
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex flex-col md:flex-row gap-8">
-                <Sidebar user={user} setPage={setPage} />
-                {renderContent()}
+                <Sidebar user={user} setPage={setPage} onPurchase={handlePurchase} />
+                {isLoading ? <div className="w-full flex justify-center items-center"><Spinner /></div> : renderContent()}
             </div>
         </div>
     );
 };
+
+const ActiveOrder = ({ order, setActiveOrder }) => {
+    const [timeLeft, setTimeLeft] = useState(Math.round((new Date(order.expires.seconds * 1000) - new Date()) / 1000));
+
+    useEffect(() => {
+        if (timeLeft <= 0) return;
+        const timer = setInterval(() => {
+            setTimeLeft(prev => prev - 1);
+        }, 1000);
+        return () => clearInterval(timer);
+    }, [timeLeft]);
+
+    const formatTime = (seconds) => {
+        const minutes = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    return (
+        <main className="w-full md:w-2/3 lg:w-3/4">
+            <Card className="p-6">
+                 <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Active Order</h1>
+                 <div className="space-y-3">
+                    <p><strong>Service:</strong> {order.product}</p>
+                    <p><strong>Phone Number:</strong> <span className="font-mono bg-gray-200 dark:bg-gray-700 p-1 rounded">{order.phone}</span></p>
+                    <p><strong>Status:</strong> <span className="font-bold text-yellow-500">{order.status}</span></p>
+                    <div className="text-center my-4">
+                        <p className="text-lg">Time Remaining</p>
+                        <p className="text-4xl font-bold text-red-500">{formatTime(timeLeft)}</p>
+                    </div>
+                    <div>
+                        <h3 className="font-bold mb-2">Received SMS:</h3>
+                        <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-md min-h-[100px]">
+                            {order.sms ? order.sms.text : "Waiting for SMS..."}
+                        </div>
+                    </div>
+                 </div>
+                 <div className="mt-6 flex justify-end space-x-4">
+                    <Button variant="secondary" onClick={() => setActiveOrder(null)}>Cancel Order</Button>
+                    <Button onClick={() => setActiveOrder(null)}>Mark as Finished</Button>
+                 </div>
+            </Card>
+        </main>
+    );
+};
+
 
 // --- Main App Component ---
 
 function App() {
     const [page, setPage] = useState('home');
     const [user, setUser] = useState(null);
+    const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [theme, setTheme] = useTheme();
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
             setUser(currentUser);
-            setLoading(false);
-            const protectedPages = ['profile', 'history', 'recharge'];
-            if (!currentUser && protectedPages.includes(page)) {
-                setPage('home');
+            if (!currentUser) {
+                setProfile(null);
+                if (['profile', 'history', 'recharge'].includes(page)) {
+                    setPage('home');
+                }
             }
+            setLoading(false);
         });
         return () => unsubscribe();
     }, [page]);
+    
+    useEffect(() => {
+        if (!user) return;
+        const unsub = onSnapshot(doc(db, "users", user.uid), (doc) => {
+            setProfile(doc.data());
+        });
+        return () => unsub();
+    }, [user]);
 
     if (loading) {
         return <div className="min-h-screen flex items-center justify-center bg-blue-50 dark:bg-gray-900"><Spinner /></div>;
     }
     
     return (
-        <div className="font-sans text-gray-900 bg-blue-50 dark:bg-gray-900 min-h-screen">
-            <Header user={user} setPage={setPage} theme={theme} setTheme={setTheme} />
-            <MainLayout user={user} page={page} setPage={setPage} />
-            <Footer setPage={setPage} />
-        </div>
+        <CurrencyProvider>
+            <div className="font-sans text-gray-900 bg-blue-50 dark:bg-gray-900 min-h-screen">
+                <Header user={user} profile={profile} setPage={setPage} theme={theme} setTheme={setTheme} />
+                <MainLayout user={user} page={page} setPage={setPage} profile={profile} />
+                <Footer setPage={setPage} />
+            </div>
+        </CurrencyProvider>
     );
 }
 

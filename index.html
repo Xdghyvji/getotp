@@ -4,11 +4,25 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- ADD THIS SCRIPT TAG -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>GET GROW Up SMM Panel</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>GetOTP.net</title>
+    <style>
+      body { 
+        font-family: 'Inter', sans-serif; 
+      }
+      .dark {
+        --bg-primary: #111827; /* gray-900 */
+        --bg-secondary: #1f2937; /* gray-800 */
+        --text-primary: #f9fafb; /* gray-50 */
+        --text-secondary: #d1d5db; /* gray-300 */
+        --border-color: #374151; /* gray-700 */
+      }
+    </style>
   </head>
-  <body>
+  <body class="bg-blue-50 dark:bg-gray-900">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
