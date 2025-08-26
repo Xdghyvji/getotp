@@ -1,9 +1,8 @@
-const { useState, useEffect, useRef, createContext, useContext } = React;
+import React, { useState, useEffect, useRef, createContext, useContext } from 'react';
 
-// --- FIREBASE V9 COMPATIBILITY (GLOBAL NAMESPACE) ---
-// This uses the firebase object made available by the <script> tags
-const { initializeApp } = firebase.app;
-const { 
+// --- FIREBASE IMPORTS ---
+import { initializeApp } from 'firebase/app';
+import { 
     getAuth, 
     GoogleAuthProvider, 
     signInWithPopup, 
@@ -12,8 +11,8 @@ const {
     updateProfile,
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword
-} = firebase.auth;
-const { 
+} from 'firebase/auth';
+import { 
     getFirestore, 
     doc, 
     getDoc, 
@@ -23,7 +22,7 @@ const {
     onSnapshot,
     query,
     updateDoc,
-} = firebase.firestore;
+} from 'firebase/firestore';
 
 
 // --- FIREBASE CONFIGURATION ---
