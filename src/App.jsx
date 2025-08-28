@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, createContext, useContext } from 'react';
 
 // --- FIREBASE IMPORTS ---
-// It's best practice to use the modular SDK for smaller bundle sizes
 import { initializeApp } from 'firebase/app';
 import { 
     getAuth, 
@@ -26,13 +25,13 @@ import {
     serverTimestamp,
     where,
     orderBy,
-    limit
+    limit,
+    runTransaction
 } from 'firebase/firestore';
 
 
 // --- FIREBASE CONFIGURATION ---
 // IMPORTANT: In a real project, these should be stored in environment variables (.env file)
-// For this example, we'll define them here.
 const firebaseConfig = {
   apiKey: "AIzaSyBVruE0hRVZisHlnnyuWBl-PZp3-DMp028",
   authDomain: "pakages-provider.firebaseapp.com",
@@ -132,7 +131,7 @@ const ThemeToggle = ({ theme, setTheme }) => {
 };
 // A simple toast notification component
 const Toast = ({ message, type, onDismiss }) => {
-    const baseStyle = "fixed top-5 right-5 p-4 rounded-lg shadow-lg text-white transition-opacity duration-300";
+    const baseStyle = "fixed top-5 right-5 p-4 rounded-lg shadow-lg text-white transition-opacity duration-300 z-50";
     const typeStyles = {
         success: "bg-green-500",
         error: "bg-red-500",
@@ -171,7 +170,7 @@ const Header = ({ user, profile, setPage, theme, setTheme }) => {
     }, []);
 
     return (
-        <header className="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-50">
+        <header className="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-40">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
                     <div className="flex-shrink-0 text-2xl font-bold text-blue-600 cursor-pointer" onClick={() => setPage('home')}>
@@ -274,42 +273,65 @@ const Sidebar = ({ user, setPage, onPurchase, showToast }) => {
     const [servers, setServers] = useState([]);
     const [loading, setLoading] = useState(true);
     const { convertCurrency, currencySymbol } = useCurrency();
+    const [selectedService, setSelectedService] = useState(null);
     const [selectedServer, setSelectedServer] = useState(null);
     const [showAllServices, setShowAllServices] = useState(false);
     const [showAllServers, setShowAllServers] = useState(false);
 
     useEffect(() => {
+        // Mock data for available countries per service.
+        // In a real app, this should come from your Firestore database.
+        const servicesWithRegions = (service) => {
+            const serviceName = service.name.toLowerCase();
+            if (serviceName.includes('facebook') || serviceName.includes('google')) {
+                return { ...service, available_countries: ['USA', 'Canada', 'UK'] };
+            }
+            if (serviceName.includes('telegram')) {
+                return { ...service, available_countries: ['Germany', 'Russia'] };
+            }
+            // Default: all countries available
+            return { ...service, available_countries: servers.map(s => s.name) };
+        };
+
         const unsubServices = onSnapshot(collection(db, "services"), (snapshot) => {
-            setServices(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+            const servicesData = snapshot.docs.map(doc => servicesWithRegions({ id: doc.id, ...doc.data() }));
+            setServices(servicesData);
         });
+        
         const unsubServers = onSnapshot(collection(db, "servers"), (snapshot) => {
             const serverData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             setServers(serverData);
-            if(serverData.length > 0 && !selectedServer) {
-                setSelectedServer(serverData[0]);
-            }
         });
 
         setLoading(false);
 
         return () => { unsubServices(); unsubServers(); };
-    }, [selectedServer]);
+    }, []);
 
-    const handlePurchaseClick = (service) => {
-        if (!user) {
-            setPage('login');
-            showToast('Please log in to purchase a number.', 'info');
+    const handleServiceSelect = (service) => {
+        setSelectedService(service);
+        setSelectedServer(null); // Reset server selection when service changes
+        showToast(`Selected service: ${service.name}. Now select a country.`, 'info');
+    };
+
+    const handleServerSelect = (server) => {
+        if (!selectedService) {
+            showToast('Please select a service first.', 'error');
             return;
         }
-        if (!selectedServer) {
-            showToast('Please select a country/server first.', 'error');
-            return;
-        }
-        onPurchase(service, selectedServer);
+        setSelectedServer(server);
+        // Automatically trigger purchase when both are selected
+        onPurchase(selectedService, server);
     };
 
     const displayedServices = showAllServices ? services : services.slice(0, 10);
-    const displayedServers = showAllServers ? servers : servers.slice(0, 10);
+    
+    // Filter servers based on the selected service
+    const availableServers = selectedService 
+        ? servers.filter(server => selectedService.available_countries.includes(server.name))
+        : servers;
+
+    const displayedServers = showAllServers ? availableServers : availableServers.slice(0, 10);
 
     return (
         <aside className="w-full md:w-1/3 lg:w-1/4">
@@ -322,7 +344,8 @@ const Sidebar = ({ user, setPage, onPurchase, showToast }) => {
                     </div>
                     <div className="mt-2 h-64 overflow-y-auto">
                         {loading ? <Spinner /> : displayedServices.map(service => (
-                            <div key={service.id} onClick={() => handlePurchaseClick(service)} className="flex items-center justify-between p-2 hover:bg-blue-50 dark:hover:bg-gray-700 rounded-md cursor-pointer">
+                            <div key={service.id} onClick={() => handleServiceSelect(service)} 
+                                 className={`flex items-center justify-between p-2 rounded-md cursor-pointer ${selectedService?.id === service.id ? 'bg-blue-100 dark:bg-blue-900/50' : 'hover:bg-blue-50 dark:hover:bg-gray-700'}`}>
                                 <div className="flex items-center space-x-3">
                                     <img src={`https://logo.clearbit.com/${service.name.toLowerCase().replace(/\s+/g, '')}.com`} onError={(e) => { e.target.onerror = null; e.target.src=`https://ui-avatars.com/api/?name=${service.name.charAt(0)}&background=random`}} alt={service.name} className="w-8 h-8 rounded-full" />
                                     <span className="font-medium text-gray-800 dark:text-gray-200">{service.name}</span>
@@ -347,12 +370,14 @@ const Sidebar = ({ user, setPage, onPurchase, showToast }) => {
                     </div>
                     <div className="mt-2 h-48 overflow-y-auto">
                         {loading ? <Spinner /> : displayedServers.map(server => (
-                            <div key={server.id} onClick={() => setSelectedServer(server)} className={`flex items-center p-2 rounded-md cursor-pointer ${selectedServer?.id === server.id ? 'bg-blue-100 dark:bg-blue-900/50' : 'hover:bg-blue-50 dark:hover:bg-gray-700'}`}>
+                            <div key={server.id} onClick={() => handleServerSelect(server)} 
+                                 className={`flex items-center p-2 rounded-md cursor-pointer ${!selectedService ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-50 dark:hover:bg-gray-700'}`}>
                                 <span className="ml-3 font-medium text-gray-800 dark:text-gray-200">{server.name} ({server.location})</span>
                             </div>
                         ))}
+                         {!selectedService && <div className="text-center text-sm text-gray-500 p-4">Please select a service to see available countries.</div>}
                     </div>
-                     {!showAllServers && servers.length > 10 && (
+                     {!showAllServers && availableServers.length > 10 && (
                         <button onClick={() => setShowAllServers(true)} className="text-blue-600 text-sm font-semibold mt-2">See More...</button>
                     )}
                 </div>
@@ -446,10 +471,18 @@ const NumbersHistory = ({ user }) => {
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const orders = snapshot.docs.map(doc => {
                 const data = doc.data();
+                const statusMap = {
+                    'PENDING': 'bg-yellow-100 text-yellow-800',
+                    'FINISHED': 'bg-green-100 text-green-800',
+                    'CANCELED': 'bg-red-100 text-red-800',
+                    'EXPIRED': 'bg-gray-100 text-gray-800',
+                };
                 return {
-                    phone: data.phone, product: data.product, price: `$${data.price.toFixed(2)}`,
-                    status: <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${data.status === 'FINISHED' ? 'bg-green-100 text-green-800' : data.status === 'CANCELED' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>{data.status}</span>,
-                    date: data.createdAt.toDate().toLocaleString(),
+                    phone: data.phone, 
+                    product: data.product, 
+                    price: `$${data.price.toFixed(2)}`,
+                    status: <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusMap[data.status] || statusMap['EXPIRED']}`}>{data.status}</span>,
+                    date: data.createdAt?.toDate().toLocaleString() || 'N/A',
                 };
             });
             setHistory(orders); setLoading(false);
@@ -597,7 +630,7 @@ const LoginPage = () => {
 };
 
 const RechargePage = ({ user, showToast }) => {
-    const [amount, setAmount] = useState(1); // Default amount
+    const [amount, setAmount] = useState(1); // Default amount in PKR
     const [loading, setLoading] = useState(false);
 
     const handlePayment = async () => {
@@ -623,7 +656,6 @@ const RechargePage = ({ user, showToast }) => {
             }
 
             const { paymentUrl } = await response.json();
-            // Redirect user to the payment gateway
             window.location.href = paymentUrl;
 
         } catch (error) {
@@ -673,23 +705,30 @@ const ContentPage = ({ title }) => (
     </div>
 );
 
-const ActiveOrder = ({ order, onCancel, onFinish }) => {
-    const [timeLeft, setTimeLeft] = useState(0);
+const ActiveOrder = ({ order, onUpdateStatus }) => {
+    const [timeLeft, setTimeLeft] = useState(1);
     const [copied, setCopied] = useState(false);
 
     useEffect(() => {
-        // Calculate initial time left. Handles both Firestore Timestamp and JS Date objects.
         const expiryTime = order.expires?.toDate ? order.expires.toDate().getTime() : new Date(order.expires).getTime();
         const now = Date.now();
-        setTimeLeft(Math.round((expiryTime - now) / 1000));
+        const initialTimeLeft = Math.round((expiryTime - now) / 1000);
+        setTimeLeft(initialTimeLeft > 0 ? initialTimeLeft : 0);
 
-        // Set up the countdown timer
         const timer = setInterval(() => {
             setTimeLeft(prev => (prev > 0 ? prev - 1 : 0));
         }, 1000);
 
         return () => clearInterval(timer);
     }, [order.expires]);
+
+    // Effect for automatic cancellation when timer runs out
+    useEffect(() => {
+        if (timeLeft <= 0 && order.status === 'PENDING') {
+            onUpdateStatus(order.id, 'EXPIRED');
+        }
+    }, [timeLeft, order.id, order.status, onUpdateStatus]);
+
 
     const formatTime = (seconds) => {
         if (seconds <= 0) return "00:00";
@@ -699,7 +738,6 @@ const ActiveOrder = ({ order, onCancel, onFinish }) => {
     };
     
     const handleCopy = (text) => {
-        // A temporary textarea is created to execute the copy command.
         const textArea = document.createElement("textarea");
         textArea.value = text;
         document.body.appendChild(textArea);
@@ -707,7 +745,7 @@ const ActiveOrder = ({ order, onCancel, onFinish }) => {
         try {
             document.execCommand('copy');
             setCopied(true);
-            setTimeout(() => setCopied(false), 2000); // Reset after 2 seconds
+            setTimeout(() => setCopied(false), 2000);
         } catch (err) {
             console.error('Failed to copy text: ', err);
         }
@@ -740,8 +778,8 @@ const ActiveOrder = ({ order, onCancel, onFinish }) => {
                     </div>
                  </div>
                  <div className="mt-6 flex justify-end space-x-4">
-                    <Button variant="secondary" onClick={() => onCancel(order.id)}>Cancel Order</Button>
-                    <Button onClick={() => onFinish(order.id)}>Mark as Finished</Button>
+                    <Button variant="secondary" onClick={() => onUpdateStatus(order.id, 'CANCELED')}>Cancel Order</Button>
+                    <Button onClick={() => onUpdateStatus(order.id, 'FINISHED')}>Mark as Finished</Button>
                  </div>
             </Card>
         </main>
@@ -754,13 +792,10 @@ const MainLayout = ({ user, page, setPage, profile, showToast }) => {
     const [isLoading, setIsLoading] = useState(false);
     const activeOrderUnsubscribe = useRef(null);
 
-    // Effect to listen for the user's most recent PENDING order
     useEffect(() => {
         if (!user) {
             setActiveOrder(null);
-            if (activeOrderUnsubscribe.current) {
-                activeOrderUnsubscribe.current();
-            }
+            if (activeOrderUnsubscribe.current) activeOrderUnsubscribe.current();
             return;
         }
 
@@ -781,61 +816,68 @@ const MainLayout = ({ user, page, setPage, profile, showToast }) => {
         });
 
         return () => {
-            if (activeOrderUnsubscribe.current) {
-                activeOrderUnsubscribe.current();
-            }
+            if (activeOrderUnsubscribe.current) activeOrderUnsubscribe.current();
         };
     }, [user]);
 
-
     const handlePurchase = async (service, server) => {
-        if (profile.balance < service.price) {
-            showToast("Insufficient balance. Please recharge your account.", "error");
-            setPage('recharge');
+        if (activeOrder) {
+            showToast("You already have an active order. Please complete or cancel it first.", "error");
             return;
         }
-
+        
         setIsLoading(true);
         
         try {
-            // This is a placeholder for a real API call to your backend to get a number.
-            // Your backend would then interact with the third-party provider.
-            // For now, we'll simulate the process and create the order directly.
-            
-            // TODO: Replace this with a call to your Netlify function `api-proxy`
-            // const numberData = await apiCall(service.provider, `/getNumber?service=${service.name}&country=${server.location}`);
-            
-            const fakeNumberData = {
-                phone: `+${Math.floor(1000000000 + Math.random() * 9000000000)}`,
-                // Expiry is 15 minutes from now
-                expires: new Date(Date.now() + 15 * 60000),
-            };
+            // Use a transaction to ensure balance check and deduction are atomic
+            await runTransaction(db, async (transaction) => {
+                const userRef = doc(db, "users", user.uid);
+                const userDoc = await transaction.get(userRef);
 
-            const newOrder = {
-                userId: user.uid,
-                phone: fakeNumberData.phone,
-                product: service.name,
-                price: service.price,
-                provider: service.provider,
-                server: server.name,
-                status: "PENDING",
-                createdAt: serverTimestamp(),
-                expires: fakeNumberData.expires,
-                sms: null,
-            };
+                if (!userDoc.exists()) {
+                    throw new Error("User document does not exist!");
+                }
 
-            // Deduct balance and create order in a transaction for data integrity
-            const userRef = doc(db, "users", user.uid);
-            const newBalance = profile.balance - service.price;
-            
-            await addDoc(collection(db, "users", user.uid, "orders"), newOrder);
-            await updateDoc(userRef, { balance: newBalance });
+                const currentBalance = userDoc.data().balance;
+                if (currentBalance < service.price) {
+                    // This will abort the transaction and the error will be caught below
+                    throw new Error("Insufficient balance. Please recharge your account.");
+                }
+
+                // TODO: Replace this with a real API call to your backend to get a number.
+                const fakeNumberData = {
+                    phone: `+${Math.floor(1000000000 + Math.random() * 9000000000)}`,
+                    expires: new Date(Date.now() + 15 * 60000), // 15 minutes from now
+                };
+
+                const newOrder = {
+                    userId: user.uid,
+                    phone: fakeNumberData.phone,
+                    product: service.name,
+                    price: service.price,
+                    provider: service.provider,
+                    server: server.name,
+                    status: "PENDING",
+                    createdAt: serverTimestamp(),
+                    expires: fakeNumberData.expires,
+                    sms: null,
+                };
+
+                const newBalance = currentBalance - service.price;
+                
+                const newOrderRef = doc(collection(db, "users", user.uid, "orders"));
+                transaction.set(newOrderRef, newOrder);
+                transaction.update(userRef, { balance: newBalance });
+            });
 
             showToast(`Successfully purchased number for ${service.name}!`, 'success');
 
         } catch (e) {
-            console.error("Error creating order: ", e);
-            showToast("Failed to create order. Please try again.", 'error');
+            console.error("Error during transaction: ", e);
+            showToast(e.message, 'error');
+            if (e.message.includes("Insufficient balance")) {
+                setPage('recharge');
+            }
         }
         setIsLoading(false);
     };
@@ -852,9 +894,8 @@ const MainLayout = ({ user, page, setPage, profile, showToast }) => {
         }
     };
 
-
     const renderContent = () => {
-        if (activeOrder) return <ActiveOrder order={activeOrder} onCancel={handleOrderStatusChange} onFinish={handleOrderStatusChange} />;
+        if (activeOrder) return <ActiveOrder order={activeOrder} onUpdateStatus={handleOrderStatusChange} />;
 
         const contentPages = ['cookies', 'delivery', 'terms', 'privacy', 'refund', 'about', 'contacts', 'rules', 'developers'];
         if (contentPages.includes(page)) {
@@ -901,7 +942,6 @@ function App() {
             setUser(currentUser);
             if (!currentUser) {
                 setProfile(null);
-                // If user logs out, redirect from protected pages to home
                 if (['profile', 'history', 'recharge'].includes(page)) {
                     setPage('home');
                 }
@@ -911,7 +951,6 @@ function App() {
         return () => unsubscribe();
     }, [page]);
     
-    // Listen for real-time updates to the user's profile (e.g., balance changes)
     useEffect(() => {
         if (!user) return;
         const unsub = onSnapshot(doc(db, "users", user.uid), (doc) => {
@@ -935,5 +974,7 @@ function App() {
         </CurrencyProvider>
     );
 }
+
+
 
 export default App;
