@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, createContext, useContext } from 'react';
 
 // --- FIREBASE IMPORTS ---
+// It's best practice to use the modular SDK for smaller bundle sizes
 import { initializeApp } from 'firebase/app';
 import { 
     getAuth, 
@@ -22,10 +23,16 @@ import {
     onSnapshot,
     query,
     updateDoc,
+    serverTimestamp,
+    where,
+    orderBy,
+    limit
 } from 'firebase/firestore';
 
 
 // --- FIREBASE CONFIGURATION ---
+// IMPORTANT: In a real project, these should be stored in environment variables (.env file)
+// For this example, we'll define them here.
 const firebaseConfig = {
   apiKey: "AIzaSyBVruE0hRVZisHlnnyuWBl-PZp3-DMp028",
   authDomain: "pakages-provider.firebaseapp.com",
@@ -86,7 +93,9 @@ const TwitterIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" hei
 const TelegramIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="text-blue-400"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.69 6.6-2.51 11.3c-.15.68-.58.85-1.12.53l-3.6-2.65-1.74 1.67c-.2.2-.36.36-.72.36s-.52-.16-.72-.36L5.6 13.5c-.65-.41-.65-1.04.1-1.34l10.4-4.04c.54-.21 1.02.12.84.88z"></path></svg>;
 const SunIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>;
 const MoonIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>;
-const CreditCardIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>;
+const ClipboardIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>;
+const CheckIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>;
+
 
 // --- Theme Hook ---
 const useTheme = () => {
@@ -105,7 +114,7 @@ const useTheme = () => {
 // --- Reusable UI Components ---
 const Card = ({ children, className = '' }) => <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-md ${className}`}>{children}</div>;
 const Button = ({ children, onClick, className = '', variant = 'primary', ...props }) => {
-    const base = 'px-4 py-2 font-semibold rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50';
+    const base = 'px-4 py-2 font-semibold rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
     const variants = {
         primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
         secondary: 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 focus:ring-gray-400',
@@ -121,6 +130,28 @@ const ThemeToggle = ({ theme, setTheme }) => {
         </button>
     );
 };
+// A simple toast notification component
+const Toast = ({ message, type, onDismiss }) => {
+    const baseStyle = "fixed top-5 right-5 p-4 rounded-lg shadow-lg text-white transition-opacity duration-300";
+    const typeStyles = {
+        success: "bg-green-500",
+        error: "bg-red-500",
+        info: "bg-blue-500",
+    };
+
+    useEffect(() => {
+        const timer = setTimeout(onDismiss, 3000);
+        return () => clearTimeout(timer);
+    }, [onDismiss]);
+
+    return (
+        <div className={`${baseStyle} ${typeStyles[type]}`}>
+            {message}
+            <button onClick={onDismiss} className="ml-4 font-bold">X</button>
+        </div>
+    );
+};
+
 
 // --- Main Page Components ---
 
@@ -217,9 +248,9 @@ const Footer = ({ setPage }) => (
                 <div>
                     <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-3">GetOTP.net</h3>
                     <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-                       <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('about')}} className="hover:text-blue-600 dark:hover:text-blue-400">About the service</a></li>
-                       <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('contacts')}} className="hover:text-blue-600 dark:hover:text-blue-400">Contacts</a></li>
-                       <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('rules')}} className="hover:text-blue-600 dark:hover:text-blue-400">Rules</a></li>
+                        <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('about')}} className="hover:text-blue-600 dark:hover:text-blue-400">About the service</a></li>
+                        <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('contacts')}} className="hover:text-blue-600 dark:hover:text-blue-400">Contacts</a></li>
+                        <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('rules')}} className="hover:text-blue-600 dark:hover:text-blue-400">Rules</a></li>
                     </ul>
                 </div>
                 <div>
@@ -238,7 +269,7 @@ const Footer = ({ setPage }) => (
     </footer>
 );
 
-const Sidebar = ({ user, setPage, onPurchase }) => {
+const Sidebar = ({ user, setPage, onPurchase, showToast }) => {
     const [services, setServices] = useState([]);
     const [servers, setServers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -267,10 +298,11 @@ const Sidebar = ({ user, setPage, onPurchase }) => {
     const handlePurchaseClick = (service) => {
         if (!user) {
             setPage('login');
+            showToast('Please log in to purchase a number.', 'info');
             return;
         }
         if (!selectedServer) {
-            alert("Please select a country/server first.");
+            showToast('Please select a country/server first.', 'error');
             return;
         }
         onPurchase(service, selectedServer);
@@ -410,7 +442,7 @@ const NumbersHistory = ({ user }) => {
 
     useEffect(() => {
         if (!user) return;
-        const q = query(collection(db, "users", user.uid, "orders"));
+        const q = query(collection(db, "users", user.uid, "orders"), orderBy("createdAt", "desc"));
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const orders = snapshot.docs.map(doc => {
                 const data = doc.data();
@@ -428,10 +460,9 @@ const NumbersHistory = ({ user }) => {
     return <HistoryTable title="Numbers History" headers={["Phone", "Product", "Price", "Status", "Date"]} data={history} isLoading={loading} />;
 };
 
-const ProfileSettings = ({ user, profile }) => {
+const ProfileSettings = ({ user, profile, showToast }) => {
     const [displayName, setDisplayName] = useState(profile?.displayName || '');
     const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState('');
 
     useEffect(() => {
         setDisplayName(profile?.displayName || '');
@@ -441,15 +472,15 @@ const ProfileSettings = ({ user, profile }) => {
         e.preventDefault();
         if (displayName === profile?.displayName) return;
         
-        setLoading(true); setMessage('');
+        setLoading(true);
         try {
             await updateProfile(auth.currentUser, { displayName });
             const userDocRef = doc(db, "users", user.uid);
             await updateDoc(userDocRef, { displayName });
-            setMessage('Profile updated successfully!');
+            showToast('Profile updated successfully!', 'success');
         } catch (error) {
             console.error("Error updating profile: ", error);
-            setMessage('Failed to update profile.');
+            showToast('Failed to update profile.', 'error');
         }
         setLoading(false);
     };
@@ -479,7 +510,6 @@ const ProfileSettings = ({ user, profile }) => {
                         {loading ? <Spinner /> : 'Save Changes'}
                     </Button>
                 </div>
-                {message && <p className={`mt-4 text-sm ${message.includes('success') ? 'text-green-600' : 'text-red-600'}`}>{message}</p>}
             </form>
         </Card>
     );
@@ -504,7 +534,7 @@ const LoginPage = () => {
                 const user = userCredential.user;
                 await setDoc(doc(db, "users", user.uid), {
                     uid: user.uid, email: user.email, displayName: user.email.split('@')[0],
-                    photoURL: '', balance: 0, rating: 96, createdAt: new Date()
+                    photoURL: '', balance: 0, rating: 96, createdAt: serverTimestamp()
                 });
             }
         } catch (err) {
@@ -524,7 +554,7 @@ const LoginPage = () => {
             if (!userDoc.exists()) {
                 await setDoc(userDocRef, {
                     uid: user.uid, email: user.email, displayName: user.displayName,
-                    photoURL: user.photoURL, balance: 0, rating: 96, createdAt: new Date()
+                    photoURL: user.photoURL, balance: 0, rating: 96, createdAt: serverTimestamp()
                 });
             }
         } catch (err) {
@@ -566,33 +596,72 @@ const LoginPage = () => {
     );
 };
 
-const RechargePage = () => (
-    <div className="w-full">
-        <Card className="p-6">
-            <h1 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-200">Recharge Account</h1>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="border dark:border-gray-700 rounded-lg p-6 flex flex-col items-center justify-center text-center hover:shadow-lg transition-shadow">
-                    <img src="https://i.imgur.com/example1.png" alt="JazzCash" className="h-12 mb-4" />
-                    <h2 className="text-xl font-semibold mb-2 text-gray-800 dark:text-gray-200">JazzCash</h2>
-                    <p className="text-gray-500 dark:text-gray-400 mb-4">Pay easily with your JazzCash account.</p>
-                    <Button variant="primary">Pay Now</Button>
+const RechargePage = ({ user, showToast }) => {
+    const [amount, setAmount] = useState(1); // Default amount
+    const [loading, setLoading] = useState(false);
+
+    const handlePayment = async () => {
+        if (amount <= 0) {
+            showToast("Please enter a valid amount.", "error");
+            return;
+        }
+        setLoading(true);
+        try {
+            const idToken = await user.getIdToken();
+            const response = await fetch('/.netlify/functions/initiate-payment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${idToken}`
+                },
+                body: JSON.stringify({ amount: amount })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to initiate payment.');
+            }
+
+            const { paymentUrl } = await response.json();
+            // Redirect user to the payment gateway
+            window.location.href = paymentUrl;
+
+        } catch (error) {
+            console.error("Payment initiation failed:", error);
+            showToast(error.message, "error");
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="w-full">
+            <Card className="p-6">
+                <h1 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-200">Recharge Account</h1>
+                <div className="flex justify-center">
+                    <div className="border dark:border-gray-700 rounded-lg p-6 flex flex-col items-center justify-center text-center hover:shadow-lg transition-shadow max-w-sm">
+                        <img src="https://workuppay.co/assets/images/logo_icon/logo.png" alt="WorkupPay" className="h-12 mb-4" />
+                        <h2 className="text-xl font-semibold mb-2 text-gray-800 dark:text-gray-200">WorkupPay</h2>
+                        <p className="text-gray-500 dark:text-gray-400 mb-4">Securely add funds to your account.</p>
+                        <div className="w-full mb-4">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount (PKR)</label>
+                            <input 
+                                type="number"
+                                value={amount}
+                                onChange={(e) => setAmount(e.target.value)}
+                                min="1"
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-transparent text-center font-bold text-lg"
+                                placeholder="e.g., 500"
+                            />
+                        </div>
+                        <Button onClick={handlePayment} disabled={loading} className="w-full">
+                            {loading ? <Spinner /> : 'Proceed to Payment'}
+                        </Button>
+                    </div>
                 </div>
-                <div className="border dark:border-gray-700 rounded-lg p-6 flex flex-col items-center justify-center text-center hover:shadow-lg transition-shadow">
-                    <img src="https://i.imgur.com/example2.png" alt="WorkupPay" className="h-12 mb-4" />
-                    <h2 className="text-xl font-semibold mb-2 text-gray-800 dark:text-gray-200">WorkupPay</h2>
-                    <p className="text-gray-500 dark:text-gray-400 mb-4">Secure payments through WorkupPay.</p>
-                    <Button variant="primary">Pay Now</Button>
-                </div>
-                <div className="border dark:border-gray-700 rounded-lg p-6 flex flex-col items-center justify-center text-center hover:shadow-lg transition-shadow">
-                    <CreditCardIcon className="h-12 w-12 mb-4 text-blue-500"/>
-                    <h2 className="text-xl font-semibold mb-2 text-gray-800 dark:text-gray-200">Debit/Credit Card</h2>
-                    <p className="text-gray-500 dark:text-gray-400 mb-4">Visa, Mastercard accepted.</p>
-                    <Button variant="primary">Pay Now</Button>
-                </div>
-            </div>
-        </Card>
-    </div>
-);
+            </Card>
+        </div>
+    );
+};
 
 
 const ContentPage = ({ title }) => (
@@ -604,45 +673,188 @@ const ContentPage = ({ title }) => (
     </div>
 );
 
-const MainLayout = ({ user, page, setPage, profile }) => {
+const ActiveOrder = ({ order, onCancel, onFinish }) => {
+    const [timeLeft, setTimeLeft] = useState(0);
+    const [copied, setCopied] = useState(false);
+
+    useEffect(() => {
+        // Calculate initial time left. Handles both Firestore Timestamp and JS Date objects.
+        const expiryTime = order.expires?.toDate ? order.expires.toDate().getTime() : new Date(order.expires).getTime();
+        const now = Date.now();
+        setTimeLeft(Math.round((expiryTime - now) / 1000));
+
+        // Set up the countdown timer
+        const timer = setInterval(() => {
+            setTimeLeft(prev => (prev > 0 ? prev - 1 : 0));
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [order.expires]);
+
+    const formatTime = (seconds) => {
+        if (seconds <= 0) return "00:00";
+        const minutes = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
+    
+    const handleCopy = (text) => {
+        // A temporary textarea is created to execute the copy command.
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000); // Reset after 2 seconds
+        } catch (err) {
+            console.error('Failed to copy text: ', err);
+        }
+        document.body.removeChild(textArea);
+    };
+
+    return (
+        <main className="w-full md:w-2/3 lg:w-3/4">
+            <Card className="p-6 animate-fade-in">
+                 <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Active Order</h1>
+                 <div className="space-y-4 text-gray-800 dark:text-gray-200">
+                    <p><strong>Service:</strong> {order.product}</p>
+                    <div className="flex items-center space-x-2">
+                        <strong>Phone Number:</strong> 
+                        <span className="font-mono bg-gray-200 dark:bg-gray-700 p-2 rounded">{order.phone}</span>
+                        <button onClick={() => handleCopy(order.phone)} className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600">
+                           {copied ? <CheckIcon /> : <ClipboardIcon />}
+                        </button>
+                    </div>
+                    <p><strong>Status:</strong> <span className={`font-bold ${order.sms ? 'text-green-500' : 'text-yellow-500'}`}>{order.sms ? 'SMS Received' : 'Waiting for SMS...'}</span></p>
+                    <div className="text-center my-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                        <p className="text-lg">Time Remaining</p>
+                        <p className={`text-4xl font-bold ${timeLeft < 60 ? 'text-red-500' : 'text-blue-600'}`}>{formatTime(timeLeft)}</p>
+                    </div>
+                    <div>
+                        <h3 className="font-bold mb-2">Received SMS:</h3>
+                        <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-md min-h-[100px] flex items-center justify-center font-mono text-lg tracking-widest">
+                            {order.sms ? order.sms.text : <Spinner />}
+                        </div>
+                    </div>
+                 </div>
+                 <div className="mt-6 flex justify-end space-x-4">
+                    <Button variant="secondary" onClick={() => onCancel(order.id)}>Cancel Order</Button>
+                    <Button onClick={() => onFinish(order.id)}>Mark as Finished</Button>
+                 </div>
+            </Card>
+        </main>
+    );
+};
+
+
+const MainLayout = ({ user, page, setPage, profile, showToast }) => {
     const [activeOrder, setActiveOrder] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
+    const activeOrderUnsubscribe = useRef(null);
+
+    // Effect to listen for the user's most recent PENDING order
+    useEffect(() => {
+        if (!user) {
+            setActiveOrder(null);
+            if (activeOrderUnsubscribe.current) {
+                activeOrderUnsubscribe.current();
+            }
+            return;
+        }
+
+        const ordersQuery = query(
+            collection(db, "users", user.uid, "orders"),
+            where("status", "==", "PENDING"),
+            orderBy("createdAt", "desc"),
+            limit(1)
+        );
+
+        activeOrderUnsubscribe.current = onSnapshot(ordersQuery, (snapshot) => {
+            if (!snapshot.empty) {
+                const latestOrder = snapshot.docs[0];
+                setActiveOrder({ id: latestOrder.id, ...latestOrder.data() });
+            } else {
+                setActiveOrder(null);
+            }
+        });
+
+        return () => {
+            if (activeOrderUnsubscribe.current) {
+                activeOrderUnsubscribe.current();
+            }
+        };
+    }, [user]);
+
 
     const handlePurchase = async (service, server) => {
+        if (profile.balance < service.price) {
+            showToast("Insufficient balance. Please recharge your account.", "error");
+            setPage('recharge');
+            return;
+        }
+
         setIsLoading(true);
-        // This is where you call your Netlify function to get a number
-        // For now, we'll simulate a successful response
-        const fakeApiResponse = {
-            id: Date.now(),
-            phone: `+${Math.floor(1000000000 + Math.random() * 9000000000)}`,
-            expires: new Date(Date.now() + 15 * 60000).toISOString(),
-        };
-
-        const newOrder = {
-            userId: user.uid,
-            phone: fakeApiResponse.phone,
-            product: service.name,
-            price: service.price,
-            provider: service.provider,
-            server: server.name,
-            status: "PENDING",
-            createdAt: new Date(),
-            expires: new Date(fakeApiResponse.expires),
-            sms: null,
-        };
-
+        
         try {
-            const orderRef = await addDoc(collection(db, "users", user.uid, "orders"), newOrder);
-            setActiveOrder({ id: orderRef.id, ...newOrder });
+            // This is a placeholder for a real API call to your backend to get a number.
+            // Your backend would then interact with the third-party provider.
+            // For now, we'll simulate the process and create the order directly.
+            
+            // TODO: Replace this with a call to your Netlify function `api-proxy`
+            // const numberData = await apiCall(service.provider, `/getNumber?service=${service.name}&country=${server.location}`);
+            
+            const fakeNumberData = {
+                phone: `+${Math.floor(1000000000 + Math.random() * 9000000000)}`,
+                // Expiry is 15 minutes from now
+                expires: new Date(Date.now() + 15 * 60000),
+            };
+
+            const newOrder = {
+                userId: user.uid,
+                phone: fakeNumberData.phone,
+                product: service.name,
+                price: service.price,
+                provider: service.provider,
+                server: server.name,
+                status: "PENDING",
+                createdAt: serverTimestamp(),
+                expires: fakeNumberData.expires,
+                sms: null,
+            };
+
+            // Deduct balance and create order in a transaction for data integrity
+            const userRef = doc(db, "users", user.uid);
+            const newBalance = profile.balance - service.price;
+            
+            await addDoc(collection(db, "users", user.uid, "orders"), newOrder);
+            await updateDoc(userRef, { balance: newBalance });
+
+            showToast(`Successfully purchased number for ${service.name}!`, 'success');
+
         } catch (e) {
             console.error("Error creating order: ", e);
-            alert("Failed to create order.");
+            showToast("Failed to create order. Please try again.", 'error');
         }
         setIsLoading(false);
     };
 
+    const handleOrderStatusChange = async (orderId, newStatus) => {
+        if (!user || !orderId) return;
+        const orderRef = doc(db, "users", user.uid, "orders", orderId);
+        try {
+            await updateDoc(orderRef, { status: newStatus });
+            showToast(`Order marked as ${newStatus}.`, 'info');
+        } catch (error) {
+            console.error(`Failed to update order status:`, error);
+            showToast('Could not update order status.', 'error');
+        }
+    };
+
+
     const renderContent = () => {
-        if (activeOrder) return <ActiveOrder order={activeOrder} setActiveOrder={setActiveOrder} />;
+        if (activeOrder) return <ActiveOrder order={activeOrder} onCancel={handleOrderStatusChange} onFinish={handleOrderStatusChange} />;
 
         const contentPages = ['cookies', 'delivery', 'terms', 'privacy', 'refund', 'about', 'contacts', 'rules', 'developers'];
         if (contentPages.includes(page)) {
@@ -651,9 +863,9 @@ const MainLayout = ({ user, page, setPage, profile }) => {
 
         switch (page) {
             case 'history': return <NumbersHistory user={user} />;
-            case 'profile': return <ProfileSettings user={user} profile={profile} />;
+            case 'profile': return <ProfileSettings user={user} profile={profile} showToast={showToast} />;
             case 'login': return <LoginPage />;
-            case 'recharge': return <RechargePage />;
+            case 'recharge': return <RechargePage user={user} showToast={showToast} />;
             case 'home':
             default: return <LandingContent setPage={setPage} />;
         }
@@ -662,55 +874,10 @@ const MainLayout = ({ user, page, setPage, profile }) => {
     return (
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex flex-col md:flex-row gap-8">
-                <Sidebar user={user} setPage={setPage} onPurchase={handlePurchase} />
+                <Sidebar user={user} setPage={setPage} onPurchase={handlePurchase} showToast={showToast} />
                 {isLoading ? <div className="w-full flex justify-center items-center"><Spinner /></div> : renderContent()}
             </div>
         </div>
-    );
-};
-
-const ActiveOrder = ({ order, setActiveOrder }) => {
-    const [timeLeft, setTimeLeft] = useState(Math.round((new Date(order.expires.seconds * 1000) - new Date()) / 1000));
-
-    useEffect(() => {
-        if (timeLeft <= 0) return;
-        const timer = setInterval(() => {
-            setTimeLeft(prev => prev - 1);
-        }, 1000);
-        return () => clearInterval(timer);
-    }, [timeLeft]);
-
-    const formatTime = (seconds) => {
-        const minutes = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    };
-
-    return (
-        <main className="w-full md:w-2/3 lg:w-3/4">
-            <Card className="p-6">
-                 <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Active Order</h1>
-                 <div className="space-y-3">
-                    <p><strong>Service:</strong> {order.product}</p>
-                    <p><strong>Phone Number:</strong> <span className="font-mono bg-gray-200 dark:bg-gray-700 p-1 rounded">{order.phone}</span></p>
-                    <p><strong>Status:</strong> <span className="font-bold text-yellow-500">{order.status}</span></p>
-                    <div className="text-center my-4">
-                        <p className="text-lg">Time Remaining</p>
-                        <p className="text-4xl font-bold text-red-500">{formatTime(timeLeft)}</p>
-                    </div>
-                    <div>
-                        <h3 className="font-bold mb-2">Received SMS:</h3>
-                        <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-md min-h-[100px]">
-                            {order.sms ? order.sms.text : "Waiting for SMS..."}
-                        </div>
-                    </div>
-                 </div>
-                 <div className="mt-6 flex justify-end space-x-4">
-                    <Button variant="secondary" onClick={() => setActiveOrder(null)}>Cancel Order</Button>
-                    <Button onClick={() => setActiveOrder(null)}>Mark as Finished</Button>
-                 </div>
-            </Card>
-        </main>
     );
 };
 
@@ -723,12 +890,18 @@ function App() {
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [theme, setTheme] = useTheme();
+    const [toast, setToast] = useState(null);
+
+    const showToast = (message, type) => {
+        setToast({ message, type });
+    };
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
             setUser(currentUser);
             if (!currentUser) {
                 setProfile(null);
+                // If user logs out, redirect from protected pages to home
                 if (['profile', 'history', 'recharge'].includes(page)) {
                     setPage('home');
                 }
@@ -738,6 +911,7 @@ function App() {
         return () => unsubscribe();
     }, [page]);
     
+    // Listen for real-time updates to the user's profile (e.g., balance changes)
     useEffect(() => {
         if (!user) return;
         const unsub = onSnapshot(doc(db, "users", user.uid), (doc) => {
@@ -753,8 +927,9 @@ function App() {
     return (
         <CurrencyProvider>
             <div className="font-sans text-gray-900 bg-blue-50 dark:bg-gray-900 min-h-screen">
+                {toast && <Toast message={toast.message} type={toast.type} onDismiss={() => setToast(null)} />}
                 <Header user={user} profile={profile} setPage={setPage} theme={theme} setTheme={setTheme} />
-                <MainLayout user={user} page={page} setPage={setPage} profile={profile} />
+                <MainLayout user={user} page={page} setPage={setPage} profile={profile} showToast={showToast} />
                 <Footer setPage={setPage} />
             </div>
         </CurrencyProvider>
