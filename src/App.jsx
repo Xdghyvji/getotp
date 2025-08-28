@@ -268,119 +268,167 @@ const Footer = ({ setPage }) => (
     </footer>
 );
 
+// --- API Call Helper ---
+// This function will call our secure Netlify proxy function
+const apiCall = async (providerName, endpoint, userToken) => {
+    try {
+        const response = await fetch('/.netlify/functions/api-proxy', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                // Send the user's Firebase token for authenticated requests
+                'Authorization': `Bearer ${userToken}` 
+            },
+            body: JSON.stringify({ providerName, endpoint }),
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `API Error: ${response.statusText}`);
+        }
+        return response.json();
+    } catch (error) {
+        console.error("API call failed:", error);
+        throw error;
+    }
+};
+
+
 const Sidebar = ({ user, setPage, onPurchase, showToast }) => {
     const [services, setServices] = useState([]);
     const [servers, setServers] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [operators, setOperators] = useState([]);
+    const [loading, setLoading] = useState({ services: true, servers: true, operators: false });
     const { convertCurrency, currencySymbol } = useCurrency();
+    
     const [selectedService, setSelectedService] = useState(null);
     const [selectedServer, setSelectedServer] = useState(null);
+    
     const [showAllServices, setShowAllServices] = useState(false);
     const [showAllServers, setShowAllServers] = useState(false);
 
     useEffect(() => {
-        // Mock data for available countries per service.
-        // In a real app, this should come from your Firestore database.
-        const servicesWithRegions = (service) => {
-            const serviceName = service.name.toLowerCase();
-            if (serviceName.includes('facebook') || serviceName.includes('google')) {
-                return { ...service, available_countries: ['USA', 'Canada', 'UK'] };
-            }
-            if (serviceName.includes('telegram')) {
-                return { ...service, available_countries: ['Germany', 'Russia'] };
-            }
-            // Default: all countries available
-            return { ...service, available_countries: servers.map(s => s.name) };
-        };
-
         const unsubServices = onSnapshot(collection(db, "services"), (snapshot) => {
-            const servicesData = snapshot.docs.map(doc => servicesWithRegions({ id: doc.id, ...doc.data() }));
+            const servicesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             setServices(servicesData);
+            setLoading(prev => ({...prev, services: false}));
         });
         
         const unsubServers = onSnapshot(collection(db, "servers"), (snapshot) => {
             const serverData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             setServers(serverData);
+            setLoading(prev => ({...prev, servers: false}));
         });
-
-        setLoading(false);
 
         return () => { unsubServices(); unsubServers(); };
     }, []);
 
     const handleServiceSelect = (service) => {
         setSelectedService(service);
-        setSelectedServer(null); // Reset server selection when service changes
-        showToast(`Selected service: ${service.name}. Now select a country.`, 'info');
+        setSelectedServer(null);
+        setOperators([]);
+        showToast(`Selected: ${service.name}. Now select a country.`, 'info');
     };
 
-    const handleServerSelect = (server) => {
+    const handleServerSelect = async (server) => {
         if (!selectedService) {
             showToast('Please select a service first.', 'error');
             return;
         }
         setSelectedServer(server);
-        // Automatically trigger purchase when both are selected
-        onPurchase(selectedService, server);
+        setLoading(prev => ({...prev, operators: true}));
+        
+        try {
+            // This is a REAL API call to our backend proxy, which then calls 5sim.net
+            // Endpoint from documentation: /v1/guest/prices?country=$country&product=$product
+            const endpoint = `/guest/prices?country=${server.name}&product=${selectedService.name}`;
+            const apiResult = await apiCall(selectedService.provider, endpoint);
+
+            // The API response is nested, so we need to parse it carefully
+            const operatorsData = apiResult[server.name]?.[selectedService.name];
+            if (operatorsData) {
+                const formattedOperators = Object.entries(operatorsData).map(([name, details]) => ({
+                    name,
+                    price: details.cost,
+                    qty: details.count,
+                }));
+                setOperators(formattedOperators);
+            } else {
+                setOperators([]);
+            }
+        } catch (error) {
+            showToast(`Error fetching operators: ${error.message}`, 'error');
+            setOperators([]);
+        } finally {
+            setLoading(prev => ({...prev, operators: false}));
+        }
+    };
+
+    const handleOperatorSelect = (operator) => {
+        if (!user) {
+            showToast("Please log in to purchase.", "info");
+            setPage('login');
+            return;
+        }
+        if (!selectedService || !selectedServer) return;
+        onPurchase(selectedService, selectedServer, operator);
     };
 
     const displayedServices = showAllServices ? services : services.slice(0, 10);
-    
-    // Filter servers based on the selected service
-    const availableServers = selectedService 
-        ? servers.filter(server => selectedService.available_countries.includes(server.name))
-        : servers;
-
+    const availableServers = servers;
     const displayedServers = showAllServers ? availableServers : availableServers.slice(0, 10);
 
     return (
         <aside className="w-full md:w-1/3 lg:w-1/4">
             <Card className="p-4 space-y-4">
+                {/* Step 1: Select Service */}
                 <div>
                     <h3 className="font-bold mb-2 text-gray-800 dark:text-gray-200">1. Select service</h3>
-                    <div className="relative">
-                        <input type="text" placeholder="Enter service name" className="w-full pl-10 pr-4 py-2 border dark:border-gray-600 rounded-md bg-transparent" />
-                        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    </div>
-                    <div className="mt-2 h-64 overflow-y-auto">
-                        {loading ? <Spinner /> : displayedServices.map(service => (
+                    <div className="mt-2 h-48 overflow-y-auto">
+                        {loading.services ? <Spinner /> : displayedServices.map(service => (
                             <div key={service.id} onClick={() => handleServiceSelect(service)} 
                                  className={`flex items-center justify-between p-2 rounded-md cursor-pointer ${selectedService?.id === service.id ? 'bg-blue-100 dark:bg-blue-900/50' : 'hover:bg-blue-50 dark:hover:bg-gray-700'}`}>
                                 <div className="flex items-center space-x-3">
                                     <img src={`https://logo.clearbit.com/${service.name.toLowerCase().replace(/\s+/g, '')}.com`} onError={(e) => { e.target.onerror = null; e.target.src=`https://ui-avatars.com/api/?name=${service.name.charAt(0)}&background=random`}} alt={service.name} className="w-8 h-8 rounded-full" />
                                     <span className="font-medium text-gray-800 dark:text-gray-200">{service.name}</span>
                                 </div>
-                                <div className="text-right text-sm">
-                                    <p className="text-gray-500 dark:text-gray-400">{service.qty || 0} pcs.</p>
-                                    <p className="font-bold text-blue-600">{currencySymbol}{convertCurrency(service.price)}</p>
-                                </div>
                             </div>
                         ))}
                     </div>
-                    {!showAllServices && services.length > 10 && (
-                        <button onClick={() => setShowAllServices(true)} className="text-blue-600 text-sm font-semibold mt-2">See More...</button>
-                    )}
                 </div>
 
+                {/* Step 2: Select Country */}
                 <div>
                     <h3 className="font-bold mb-2 text-gray-800 dark:text-gray-200">2. Select country</h3>
-                    <div className="relative">
-                        <input type="text" placeholder="Enter country name" className="w-full pl-10 pr-4 py-2 border dark:border-gray-600 rounded-md bg-transparent" />
-                        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    </div>
-                    <div className="mt-2 h-48 overflow-y-auto">
-                        {loading ? <Spinner /> : displayedServers.map(server => (
-                            <div key={server.id} onClick={() => handleServerSelect(server)} 
-                                 className={`flex items-center p-2 rounded-md cursor-pointer ${!selectedService ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-50 dark:hover:bg-gray-700'}`}>
+                    <div className={`mt-2 h-48 overflow-y-auto ${!selectedService ? 'opacity-50' : ''}`}>
+                        {loading.servers ? <Spinner /> : displayedServers.map(server => (
+                            <div key={server.id} onClick={() => selectedService && handleServerSelect(server)} 
+                                 className={`flex items-center p-2 rounded-md ${!selectedService ? 'cursor-not-allowed' : 'cursor-pointer'} ${selectedServer?.id === server.id ? 'bg-blue-100 dark:bg-blue-900/50' : 'hover:bg-blue-50 dark:hover:bg-gray-700'}`}>
                                 <span className="ml-3 font-medium text-gray-800 dark:text-gray-200">{server.name} ({server.location})</span>
                             </div>
                         ))}
-                         {!selectedService && <div className="text-center text-sm text-gray-500 p-4">Please select a service to see available countries.</div>}
                     </div>
-                     {!showAllServers && availableServers.length > 10 && (
-                        <button onClick={() => setShowAllServers(true)} className="text-blue-600 text-sm font-semibold mt-2">See More...</button>
-                    )}
                 </div>
+                
+                {/* Step 3: Select Operator */}
+                {selectedServer && (
+                     <div>
+                        <h3 className="font-bold mb-2 text-gray-800 dark:text-gray-200">3. Select operator</h3>
+                        <div className="mt-2 h-48 overflow-y-auto">
+                            {loading.operators ? <Spinner /> : 
+                                operators.length > 0 ? operators.map(op => (
+                                <div key={op.name} onClick={() => handleOperatorSelect(op)} 
+                                    className="flex items-center justify-between p-2 hover:bg-blue-50 dark:hover:bg-gray-700 rounded-md cursor-pointer">
+                                    <span className="font-medium text-gray-800 dark:text-gray-200">{op.name}</span>
+                                    <div className="text-right text-sm">
+                                        <p className="text-gray-500 dark:text-gray-400">{op.qty} pcs.</p>
+                                        <p className="font-bold text-blue-600">{currencySymbol}{convertCurrency(op.price)}</p>
+                                    </div>
+                                </div>
+                            )) : <p className="text-sm text-gray-500 text-center p-4">No operators found for this selection.</p>
+                            }
+                        </div>
+                    </div>
+                )}
             </Card>
         </aside>
     );
@@ -705,29 +753,77 @@ const ContentPage = ({ title }) => (
     </div>
 );
 
-const ActiveOrder = ({ order, onUpdateStatus }) => {
+const ActiveOrder = ({ user, orderData, onUpdateStatus, showToast }) => {
+    const [order, setOrder] = useState(orderData);
     const [timeLeft, setTimeLeft] = useState(1);
     const [copied, setCopied] = useState(false);
+    const pollingRef = useRef(null);
 
+    // Main effect for countdown and polling
     useEffect(() => {
-        const expiryTime = order.expires?.toDate ? order.expires.toDate().getTime() : new Date(order.expires).getTime();
+        // Set initial state from passed prop
+        setOrder(orderData);
+
+        // Calculate initial time left
+        const expiryTime = orderData.expires?.toDate ? orderData.expires.toDate().getTime() : new Date(orderData.expires).getTime();
         const now = Date.now();
         const initialTimeLeft = Math.round((expiryTime - now) / 1000);
         setTimeLeft(initialTimeLeft > 0 ? initialTimeLeft : 0);
 
-        const timer = setInterval(() => {
+        // Countdown timer
+        const countdownTimer = setInterval(() => {
             setTimeLeft(prev => (prev > 0 ? prev - 1 : 0));
         }, 1000);
 
-        return () => clearInterval(timer);
-    }, [order.expires]);
+        // Polling for SMS
+        const startPolling = () => {
+            pollingRef.current = setInterval(async () => {
+                try {
+                    const userToken = await auth.currentUser.getIdToken();
+                    // Endpoint from documentation: /v1/user/check/$id
+                    const endpoint = `/user/check/${orderData.id}`;
+                    const updatedOrder = await apiCall(orderData.provider, endpoint, userToken);
+                    
+                    if (updatedOrder.sms && updatedOrder.sms.length > 0) {
+                        // SMS found, update Firestore and stop polling
+                        const orderRef = doc(db, "users", user.uid, "orders", orderData.id);
+                        await updateDoc(orderRef, { 
+                            sms: updatedOrder.sms,
+                            status: 'RECEIVED' 
+                        });
+                        showToast("SMS Received!", "success");
+                        clearInterval(pollingRef.current);
+                    }
+                } catch (error) {
+                    console.error("Polling error:", error);
+                }
+            }, 10000); // Poll every 10 seconds
+        };
+
+        if (orderData.status === 'PENDING') {
+            startPolling();
+        }
+
+        return () => {
+            clearInterval(countdownTimer);
+            if (pollingRef.current) {
+                clearInterval(pollingRef.current);
+            }
+        };
+    }, [orderData, user.uid, showToast]);
+
+    // Effect to update local state when Firestore data changes
+    useEffect(() => {
+        setOrder(orderData);
+    }, [orderData]);
+
 
     // Effect for automatic cancellation when timer runs out
     useEffect(() => {
         if (timeLeft <= 0 && order.status === 'PENDING') {
             onUpdateStatus(order.id, 'EXPIRED');
         }
-    }, [timeLeft, order.id, order.status, onUpdateStatus]);
+    }, [timeLeft, order, onUpdateStatus]);
 
 
     const formatTime = (seconds) => {
@@ -752,6 +848,28 @@ const ActiveOrder = ({ order, onUpdateStatus }) => {
         document.body.removeChild(textArea);
     };
 
+    const handleCancel = async () => {
+        try {
+            const userToken = await auth.currentUser.getIdToken();
+            // Endpoint from documentation: /v1/user/cancel/$id
+            await apiCall(order.provider, `/user/cancel/${order.id}`, userToken);
+            onUpdateStatus(order.id, 'CANCELED');
+        } catch (error) {
+            showToast(`Error: ${error.message}`, 'error');
+        }
+    };
+
+    const handleFinish = async () => {
+        try {
+            const userToken = await auth.currentUser.getIdToken();
+            // Endpoint from documentation: /v1/user/finish/$id
+            await apiCall(order.provider, `/user/finish/${order.id}`, userToken);
+            onUpdateStatus(order.id, 'FINISHED');
+        } catch (error) {
+            showToast(`Error: ${error.message}`, 'error');
+        }
+    };
+
     return (
         <main className="w-full md:w-2/3 lg:w-3/4">
             <Card className="p-6 animate-fade-in">
@@ -765,7 +883,7 @@ const ActiveOrder = ({ order, onUpdateStatus }) => {
                            {copied ? <CheckIcon /> : <ClipboardIcon />}
                         </button>
                     </div>
-                    <p><strong>Status:</strong> <span className={`font-bold ${order.sms ? 'text-green-500' : 'text-yellow-500'}`}>{order.sms ? 'SMS Received' : 'Waiting for SMS...'}</span></p>
+                    <p><strong>Status:</strong> <span className={`font-bold ${order.sms ? 'text-green-500' : 'text-yellow-500'}`}>{order.status}</span></p>
                     <div className="text-center my-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
                         <p className="text-lg">Time Remaining</p>
                         <p className={`text-4xl font-bold ${timeLeft < 60 ? 'text-red-500' : 'text-blue-600'}`}>{formatTime(timeLeft)}</p>
@@ -773,13 +891,13 @@ const ActiveOrder = ({ order, onUpdateStatus }) => {
                     <div>
                         <h3 className="font-bold mb-2">Received SMS:</h3>
                         <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-md min-h-[100px] flex items-center justify-center font-mono text-lg tracking-widest">
-                            {order.sms ? order.sms.text : <Spinner />}
+                            {order.sms && order.sms.length > 0 ? order.sms[0].text : <Spinner />}
                         </div>
                     </div>
                  </div>
                  <div className="mt-6 flex justify-end space-x-4">
-                    <Button variant="secondary" onClick={() => onUpdateStatus(order.id, 'CANCELED')}>Cancel Order</Button>
-                    <Button onClick={() => onUpdateStatus(order.id, 'FINISHED')}>Mark as Finished</Button>
+                    <Button variant="secondary" onClick={handleCancel}>Cancel Order</Button>
+                    <Button onClick={handleFinish}>Mark as Finished</Button>
                  </div>
             </Card>
         </main>
@@ -801,7 +919,7 @@ const MainLayout = ({ user, page, setPage, profile, showToast }) => {
 
         const ordersQuery = query(
             collection(db, "users", user.uid, "orders"),
-            where("status", "==", "PENDING"),
+            where("status", "in", ["PENDING", "RECEIVED"]),
             orderBy("createdAt", "desc"),
             limit(1)
         );
@@ -820,7 +938,7 @@ const MainLayout = ({ user, page, setPage, profile, showToast }) => {
         };
     }, [user]);
 
-    const handlePurchase = async (service, server) => {
+    const handlePurchase = async (service, server, operator) => {
         if (activeOrder) {
             showToast("You already have an active order. Please complete or cancel it first.", "error");
             return;
@@ -829,43 +947,45 @@ const MainLayout = ({ user, page, setPage, profile, showToast }) => {
         setIsLoading(true);
         
         try {
-            // Use a transaction to ensure balance check and deduction are atomic
+            const userToken = await auth.currentUser.getIdToken();
+
             await runTransaction(db, async (transaction) => {
                 const userRef = doc(db, "users", user.uid);
                 const userDoc = await transaction.get(userRef);
 
-                if (!userDoc.exists()) {
-                    throw new Error("User document does not exist!");
-                }
+                if (!userDoc.exists()) throw new Error("User document does not exist!");
 
                 const currentBalance = userDoc.data().balance;
-                if (currentBalance < service.price) {
-                    // This will abort the transaction and the error will be caught below
+                const itemPrice = operator.price;
+                
+                if (currentBalance < itemPrice) {
                     throw new Error("Insufficient balance. Please recharge your account.");
                 }
 
-                // TODO: Replace this with a real API call to your backend to get a number.
-                const fakeNumberData = {
-                    phone: `+${Math.floor(1000000000 + Math.random() * 9000000000)}`,
-                    expires: new Date(Date.now() + 15 * 60000), // 15 minutes from now
-                };
+                // Call the REAL API via our proxy to get a number
+                // Endpoint from documentation: /v1/user/buy/activation/$country/$operator/$product
+                const endpoint = `/user/buy/activation/${server.name}/${operator.name}/${service.name}`;
+                const purchaseData = await apiCall(service.provider, endpoint, userToken);
 
                 const newOrder = {
+                    id: purchaseData.id, // Store the real order ID from the provider
                     userId: user.uid,
-                    phone: fakeNumberData.phone,
+                    phone: purchaseData.phone,
                     product: service.name,
-                    price: service.price,
+                    price: itemPrice,
                     provider: service.provider,
+                    operator: operator.name,
                     server: server.name,
-                    status: "PENDING",
-                    createdAt: serverTimestamp(),
-                    expires: fakeNumberData.expires,
+                    status: purchaseData.status, // Should be PENDING
+                    createdAt: new Date(purchaseData.created_at),
+                    expires: new Date(purchaseData.expires),
                     sms: null,
                 };
-
-                const newBalance = currentBalance - service.price;
                 
-                const newOrderRef = doc(collection(db, "users", user.uid, "orders"));
+                const newBalance = currentBalance - itemPrice;
+                
+                // Use the real order ID from the provider as the document ID in Firestore for easy lookup
+                const newOrderRef = doc(db, "users", user.uid, "orders", String(purchaseData.id));
                 transaction.set(newOrderRef, newOrder);
                 transaction.update(userRef, { balance: newBalance });
             });
@@ -884,7 +1004,7 @@ const MainLayout = ({ user, page, setPage, profile, showToast }) => {
 
     const handleOrderStatusChange = async (orderId, newStatus) => {
         if (!user || !orderId) return;
-        const orderRef = doc(db, "users", user.uid, "orders", orderId);
+        const orderRef = doc(db, "users", user.uid, "orders", String(orderId));
         try {
             await updateDoc(orderRef, { status: newStatus });
             showToast(`Order marked as ${newStatus}.`, 'info');
@@ -895,7 +1015,7 @@ const MainLayout = ({ user, page, setPage, profile, showToast }) => {
     };
 
     const renderContent = () => {
-        if (activeOrder) return <ActiveOrder order={activeOrder} onUpdateStatus={handleOrderStatusChange} />;
+        if (activeOrder) return <ActiveOrder user={user} orderData={activeOrder} onUpdateStatus={handleOrderStatusChange} showToast={showToast} />;
 
         const contentPages = ['cookies', 'delivery', 'terms', 'privacy', 'refund', 'about', 'contacts', 'rules', 'developers'];
         if (contentPages.includes(page)) {
@@ -974,7 +1094,5 @@ function App() {
         </CurrencyProvider>
     );
 }
-
-
 
 export default App;
