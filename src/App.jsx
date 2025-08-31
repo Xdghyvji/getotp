@@ -94,6 +94,7 @@ const SunIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height=
 const MoonIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>;
 const ClipboardIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>;
 const CheckIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>;
+const RightArrowIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>;
 
 
 // --- Theme Hook ---
@@ -225,41 +226,41 @@ const Footer = ({ setPage }) => (
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 border-t dark:border-gray-700">
             <div className="grid grid-cols-2 md:grid-cols-5 gap-8 text-sm">
                  <div>
-                    <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-3">Need help?</h3>
-                    <Button onClick={() => {}} variant="secondary" className="w-full justify-center">Support</Button>
-                </div>
-                <div>
-                    <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-3">Useful links</h3>
-                    <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-                        <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('developers')}} className="hover:text-blue-600 dark:hover:text-blue-400">For developers</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-3">For users</h3>
-                    <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-                        <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('cookies')}} className="hover:text-blue-600 dark:hover:text-blue-400">Cookies</a></li>
-                        <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('delivery')}} className="hover:text-blue-600 dark:hover:text-blue-400">Delivery policy</a></li>
-                        <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('terms')}} className="hover:text-blue-600 dark:hover:text-blue-400">Terms and conditions</a></li>
-                        <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('privacy')}} className="hover:text-blue-600 dark:hover:text-blue-400">Privacy policy</a></li>
-                        <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('refund')}} className="hover:text-blue-600 dark:hover:text-blue-400">Refund policy</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-3">GetOTP.net</h3>
-                    <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-                        <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('about')}} className="hover:text-blue-600 dark:hover:text-blue-400">About the service</a></li>
-                        <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('contacts')}} className="hover:text-blue-600 dark:hover:text-blue-400">Contacts</a></li>
-                        <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('rules')}} className="hover:text-blue-600 dark:hover:text-blue-400">Rules</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-3">Social networks</h3>
-                    <div className="flex space-x-4">
-                        <a href="#" className="hover:opacity-80"><FacebookIcon /></a>
-                        <a href="#" className="hover:opacity-80"><TwitterIcon /></a>
-                        <a href="#" className="hover:opacity-80"><TelegramIcon /></a>
-                    </div>
-                </div>
+                     <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-3">Need help?</h3>
+                     <Button onClick={() => {}} variant="secondary" className="w-full justify-center">Support</Button>
+                 </div>
+                 <div>
+                     <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-3">Useful links</h3>
+                     <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                         <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('developers')}} className="hover:text-blue-600 dark:hover:text-blue-400">For developers</a></li>
+                     </ul>
+                 </div>
+                 <div>
+                     <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-3">For users</h3>
+                     <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                         <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('cookies')}} className="hover:text-blue-600 dark:hover:text-blue-400">Cookies</a></li>
+                         <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('delivery')}} className="hover:text-blue-600 dark:hover:text-blue-400">Delivery policy</a></li>
+                         <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('terms')}} className="hover:text-blue-600 dark:hover:text-blue-400">Terms and conditions</a></li>
+                         <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('privacy')}} className="hover:text-blue-600 dark:hover:text-blue-400">Privacy policy</a></li>
+                         <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('refund')}} className="hover:text-blue-600 dark:hover:text-blue-400">Refund policy</a></li>
+                     </ul>
+                 </div>
+                 <div>
+                     <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-3">GetOTP.net</h3>
+                     <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                         <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('about')}} className="hover:text-blue-600 dark:hover:text-blue-400">About the service</a></li>
+                         <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('contacts')}} className="hover:text-blue-600 dark:hover:text-blue-400">Contacts</a></li>
+                         <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('rules')}} className="hover:text-blue-600 dark:hover:text-blue-400">Rules</a></li>
+                     </ul>
+                 </div>
+                 <div>
+                     <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-3">Social networks</h3>
+                     <div className="flex space-x-4">
+                         <a href="#" className="hover:opacity-80"><FacebookIcon /></a>
+                         <a href="#" className="hover:opacity-80"><TwitterIcon /></a>
+                         <a href="#" className="hover:opacity-80"><TelegramIcon /></a>
+                     </div>
+                 </div>
             </div>
             <div className="mt-8 text-center text-xs text-gray-500 dark:text-gray-400">
                 GetOTP.net © 2016-{new Date().getFullYear()}
@@ -296,71 +297,73 @@ const apiCall = async (providerName, endpoint, userToken) => {
 const Sidebar = ({ user, setPage, onPurchase, showToast }) => {
     const [services, setServices] = useState([]);
     const [servers, setServers] = useState([]);
-    const [operators, setOperators] = useState([]);
+    const [prices, setPrices] = useState({});
     const [loading, setLoading] = useState({ services: true, servers: true, operators: false });
     const { convertCurrency, currencySymbol } = useCurrency();
     
     const [selectedService, setSelectedService] = useState(null);
     const [selectedServer, setSelectedServer] = useState(null);
+    const [operators, setOperators] = useState([]);
     
     const [showAllServices, setShowAllServices] = useState(false);
     const [showAllServers, setShowAllServers] = useState(false);
+    const [serviceSearchTerm, setServiceSearchTerm] = useState('');
+    const [serverSearchTerm, setServerSearchTerm] = useState('');
 
     useEffect(() => {
-        const unsubServices = onSnapshot(collection(db, "services"), (snapshot) => {
-            const servicesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setServices(servicesData);
-            setLoading(prev => ({...prev, services: false}));
-        });
-        
-        const unsubServers = onSnapshot(collection(db, "servers"), (snapshot) => {
-            const serverData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setServers(serverData);
-            setLoading(prev => ({...prev, servers: false}));
-        });
+      // Listen for services
+      const unsubServices = onSnapshot(collection(db, "services"), (snapshot) => {
+        const servicesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setServices(servicesData);
+        setLoading(prev => ({...prev, services: false}));
+      });
 
-        return () => { unsubServices(); unsubServers(); };
+      // Listen for servers (countries)
+      const unsubServers = onSnapshot(collection(db, "servers"), (snapshot) => {
+        const serverData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setServers(serverData);
+        setLoading(prev => ({...prev, servers: false}));
+      });
+
+      // Listen for prices data
+      const unsubPrices = onSnapshot(doc(db, "prices", "5sim"), (doc) => {
+        if (doc.exists()) {
+          setPrices(doc.data());
+        } else {
+          setPrices({});
+        }
+      });
+
+      return () => { unsubServices(); unsubServers(); unsubPrices(); };
     }, []);
 
     const handleServiceSelect = (service) => {
-        setSelectedService(service);
-        setSelectedServer(null);
-        setOperators([]);
-        showToast(`Selected: ${service.name}. Now select a country.`, 'info');
+      setSelectedService(service);
+      setSelectedServer(null);
+      setOperators([]);
+      showToast(`Selected: ${service.name}. Now select a country.`, 'info');
     };
 
-    const handleServerSelect = async (server) => {
-        if (!selectedService) {
-            showToast('Please select a service first.', 'error');
-            return;
-        }
-        setSelectedServer(server);
-        setLoading(prev => ({...prev, operators: true}));
-        
-        try {
-            // This is a REAL API call to our backend proxy, which then calls 5sim.net
-            // Endpoint from documentation: /v1/guest/prices?country=$country&product=$product
-            const endpoint = `/guest/prices?country=${server.name}&product=${selectedService.name}`;
-            const apiResult = await apiCall(selectedService.provider, endpoint);
-
-            // The API response is nested, so we need to parse it carefully
-            const operatorsData = apiResult[server.name]?.[selectedService.name];
-            if (operatorsData) {
-                const formattedOperators = Object.entries(operatorsData).map(([name, details]) => ({
-                    name,
-                    price: details.cost,
-                    qty: details.count,
-                }));
-                setOperators(formattedOperators);
-            } else {
-                setOperators([]);
-            }
-        } catch (error) {
-            showToast(`Error fetching operators: ${error.message}`, 'error');
-            setOperators([]);
-        } finally {
-            setLoading(prev => ({...prev, operators: false}));
-        }
+    const handleServerSelect = (server) => {
+      if (!selectedService) {
+        showToast('Please select a service first.', 'error');
+        return;
+      }
+      setSelectedServer(server);
+      setLoading(prev => ({...prev, operators: true}));
+      
+      const pricesByCountryAndService = prices[server.name]?.[selectedService.name];
+      if (pricesByCountryAndService) {
+        const formattedOperators = Object.entries(pricesByCountryAndService).map(([name, details]) => ({
+          name,
+          price: details.cost,
+          qty: details.count,
+        }));
+        setOperators(formattedOperators);
+      } else {
+        setOperators([]);
+      }
+      setLoading(prev => ({...prev, operators: false}));
     };
 
     const handleOperatorSelect = (operator) => {
@@ -370,12 +373,22 @@ const Sidebar = ({ user, setPage, onPurchase, showToast }) => {
             return;
         }
         if (!selectedService || !selectedServer) return;
-        onPurchase(selectedService, selectedServer, operator);
+        
+        // Pass the actual price from the provider, not the client-side price
+        const priceToCharge = selectedService.price;
+        
+        onPurchase({
+            service: selectedService, 
+            server: selectedServer, 
+            operator: operator,
+            price: priceToCharge
+        });
     };
 
-    const displayedServices = showAllServices ? services : services.slice(0, 10);
-    const availableServers = servers;
-    const displayedServers = showAllServers ? availableServers : availableServers.slice(0, 10);
+    const filteredServices = services.filter(service => service.name?.toLowerCase().includes(serviceSearchTerm.toLowerCase()));
+    const displayedServices = showAllServices ? filteredServices : filteredServices.slice(0, 10);
+    const filteredServers = servers.filter(server => server.location?.toLowerCase().includes(serverSearchTerm.toLowerCase()));
+    const displayedServers = showAllServers ? filteredServers : filteredServers.slice(0, 10);
 
     return (
         <aside className="w-full md:w-1/3 lg:w-1/4">
@@ -383,51 +396,86 @@ const Sidebar = ({ user, setPage, onPurchase, showToast }) => {
                 {/* Step 1: Select Service */}
                 <div>
                     <h3 className="font-bold mb-2 text-gray-800 dark:text-gray-200">1. Select service</h3>
+                    <div className="relative mb-2">
+                        <input 
+                            type="text" 
+                            placeholder="Find website or app" 
+                            className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-transparent"
+                            value={serviceSearchTerm}
+                            onChange={e => setServiceSearchTerm(e.target.value)}
+                        />
+                        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    </div>
                     <div className="mt-2 h-48 overflow-y-auto">
                         {loading.services ? <Spinner /> : displayedServices.map(service => (
                             <div key={service.id} onClick={() => handleServiceSelect(service)} 
-                                 className={`flex items-center justify-between p-2 rounded-md cursor-pointer ${selectedService?.id === service.id ? 'bg-blue-100 dark:bg-blue-900/50' : 'hover:bg-blue-50 dark:hover:bg-gray-700'}`}>
+                                className={`flex items-center justify-between p-2 rounded-md cursor-pointer ${selectedService?.id === service.id ? 'bg-blue-100 dark:bg-blue-900/50' : 'hover:bg-blue-50 dark:hover:bg-gray-700'}`}>
                                 <div className="flex items-center space-x-3">
-                                    <img src={`https://logo.clearbit.com/${service.name.toLowerCase().replace(/\s+/g, '')}.com`} onError={(e) => { e.target.onerror = null; e.target.src=`https://ui-avatars.com/api/?name=${service.name.charAt(0)}&background=random`}} alt={service.name} className="w-8 h-8 rounded-full" />
+                                    {service.name && <img src={`https://logo.clearbit.com/${service.name.toLowerCase().replace(/\s+/g, '')}.com`} onError={(e) => { e.target.onerror = null; e.target.src=`https://ui-avatars.com/api/?name=${service.name.charAt(0)}&background=random`}} alt={service.name} className="w-8 h-8 rounded-full" />}
                                     <span className="font-medium text-gray-800 dark:text-gray-200">{service.name}</span>
                                 </div>
                             </div>
                         ))}
                     </div>
+                    {filteredServices.length > 10 && (
+                        <div className="mt-2 flex justify-center">
+                            <button onClick={() => setShowAllServices(!showAllServices)} className="flex items-center text-sm text-blue-600 hover:underline">
+                                {showAllServices ? 'Show less' : `Show all ${filteredServices.length}`} <RightArrowIcon className={`ml-1 w-4 h-4 transition-transform ${showAllServices ? 'rotate-90' : ''}`} />
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Step 2: Select Country */}
                 <div>
                     <h3 className="font-bold mb-2 text-gray-800 dark:text-gray-200">2. Select country</h3>
+                    <div className="relative mb-2">
+                         <input 
+                            type="text" 
+                            placeholder="Find country" 
+                            className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-transparent"
+                            value={serverSearchTerm}
+                            onChange={e => setServerSearchTerm(e.target.value)}
+                        />
+                        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    </div>
                     <div className={`mt-2 h-48 overflow-y-auto ${!selectedService ? 'opacity-50' : ''}`}>
                         {loading.servers ? <Spinner /> : displayedServers.map(server => (
                             <div key={server.id} onClick={() => selectedService && handleServerSelect(server)} 
-                                 className={`flex items-center p-2 rounded-md ${!selectedService ? 'cursor-not-allowed' : 'cursor-pointer'} ${selectedServer?.id === server.id ? 'bg-blue-100 dark:bg-blue-900/50' : 'hover:bg-blue-50 dark:hover:bg-gray-700'}`}>
-                                <span className="ml-3 font-medium text-gray-800 dark:text-gray-200">{server.name} ({server.location})</span>
+                                className={`flex items-center p-2 rounded-md ${!selectedService ? 'cursor-not-allowed' : 'cursor-pointer'} ${selectedServer?.id === server.id ? 'bg-blue-100 dark:bg-blue-900/50' : 'hover:bg-blue-50 dark:hover:bg-gray-700'}`}>
+                                {server.iso && <img src={`https://flagcdn.com/w20/${server.iso.toLowerCase()}.png`} alt={`${server.location} flag`} className="w-8 h-auto inline-block mr-3" />}
+                                <span className="font-medium text-gray-800 dark:text-gray-200">{server.location}</span>
                             </div>
                         ))}
                     </div>
+                    {filteredServers.length > 10 && (
+                        <div className="mt-2 flex justify-center">
+                            <button onClick={() => setShowAllServers(!showAllServers)} className="flex items-center text-sm text-blue-600 hover:underline">
+                                {showAllServers ? 'Show less' : `Show all ${filteredServers.length}`} <RightArrowIcon className={`ml-1 w-4 h-4 transition-transform ${showAllServers ? 'rotate-90' : ''}`} />
+                            </button>
+                        </div>
+                    )}
                 </div>
                 
                 {/* Step 3: Select Operator */}
                 {selectedServer && (
                      <div>
-                        <h3 className="font-bold mb-2 text-gray-800 dark:text-gray-200">3. Select operator</h3>
-                        <div className="mt-2 h-48 overflow-y-auto">
-                            {loading.operators ? <Spinner /> : 
-                                operators.length > 0 ? operators.map(op => (
-                                <div key={op.name} onClick={() => handleOperatorSelect(op)} 
-                                    className="flex items-center justify-between p-2 hover:bg-blue-50 dark:hover:bg-gray-700 rounded-md cursor-pointer">
-                                    <span className="font-medium text-gray-800 dark:text-gray-200">{op.name}</span>
-                                    <div className="text-right text-sm">
-                                        <p className="text-gray-500 dark:text-gray-400">{op.qty} pcs.</p>
-                                        <p className="font-bold text-blue-600">{currencySymbol}{convertCurrency(op.price)}</p>
-                                    </div>
-                                </div>
-                            )) : <p className="text-sm text-gray-500 text-center p-4">No operators found for this selection.</p>
-                            }
-                        </div>
-                    </div>
+                         <h3 className="font-bold mb-2 text-gray-800 dark:text-gray-200">3. Select operator</h3>
+                         <div className="mt-2 h-48 overflow-y-auto">
+                             {loading.operators ? <Spinner /> : 
+                                 operators.length > 0 ? operators.map(op => (
+                                 <div key={op.name} onClick={() => handleOperatorSelect(op)} 
+                                     className="flex items-center justify-between p-2 hover:bg-blue-50 dark:hover:bg-gray-700 rounded-md cursor-pointer">
+                                     <span className="font-medium text-gray-800 dark:text-gray-200">{op.name}</span>
+                                     <div className="text-right text-sm">
+                                         <p className="text-gray-500 dark:text-gray-400">{op.qty} pcs.</p>
+                                         <p className="font-bold text-blue-600">{currencySymbol}{convertCurrency(selectedService.price)}</p>
+                                     </div>
+                                 </div>
+                             )) : <p className="text-sm text-gray-500 text-center p-4">No operators found for this selection.</p>
+                             }
+                         </div>
+                     </div>
                 )}
             </Card>
         </aside>
@@ -476,11 +524,11 @@ const LandingContent = ({ setPage }) => (
                     <div className="flex-shrink-0 w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xl">1</div>
                     <p className="ml-4 font-medium text-gray-800 dark:text-gray-200">Choose country, service and get a virtual phone number</p>
                 </div>
-                 <div className="flex items-center bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+                <div className="flex items-center bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
                     <div className="flex-shrink-0 w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xl">2</div>
                     <p className="ml-4 font-medium text-gray-800 dark:text-gray-200">Use this virtual phone number to receive an SMS</p>
                 </div>
-                 <div className="flex items-center bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+                <div className="flex items-center bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
                     <div className="flex-shrink-0 w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xl">3</div>
                     <p className="ml-4 font-medium text-gray-800 dark:text-gray-200">Use SMS for successful completion</p>
                 </div>
@@ -875,29 +923,29 @@ const ActiveOrder = ({ user, orderData, onUpdateStatus, showToast }) => {
             <Card className="p-6 animate-fade-in">
                  <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Active Order</h1>
                  <div className="space-y-4 text-gray-800 dark:text-gray-200">
-                    <p><strong>Service:</strong> {order.product}</p>
-                    <div className="flex items-center space-x-2">
-                        <strong>Phone Number:</strong> 
-                        <span className="font-mono bg-gray-200 dark:bg-gray-700 p-2 rounded">{order.phone}</span>
-                        <button onClick={() => handleCopy(order.phone)} className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600">
-                           {copied ? <CheckIcon /> : <ClipboardIcon />}
-                        </button>
-                    </div>
-                    <p><strong>Status:</strong> <span className={`font-bold ${order.sms ? 'text-green-500' : 'text-yellow-500'}`}>{order.status}</span></p>
-                    <div className="text-center my-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                        <p className="text-lg">Time Remaining</p>
-                        <p className={`text-4xl font-bold ${timeLeft < 60 ? 'text-red-500' : 'text-blue-600'}`}>{formatTime(timeLeft)}</p>
-                    </div>
-                    <div>
-                        <h3 className="font-bold mb-2">Received SMS:</h3>
-                        <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-md min-h-[100px] flex items-center justify-center font-mono text-lg tracking-widest">
-                            {order.sms && order.sms.length > 0 ? order.sms[0].text : <Spinner />}
-                        </div>
-                    </div>
+                     <p><strong>Service:</strong> {order.product}</p>
+                     <div className="flex items-center space-x-2">
+                         <strong>Phone Number:</strong> 
+                         <span className="font-mono bg-gray-200 dark:bg-gray-700 p-2 rounded">{order.phone}</span>
+                         <button onClick={() => handleCopy(order.phone)} className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600">
+                            {copied ? <CheckIcon /> : <ClipboardIcon />}
+                         </button>
+                     </div>
+                     <p><strong>Status:</strong> <span className={`font-bold ${order.sms ? 'text-green-500' : 'text-yellow-500'}`}>{order.status}</span></p>
+                     <div className="text-center my-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                         <p className="text-lg">Time Remaining</p>
+                         <p className={`text-4xl font-bold ${timeLeft < 60 ? 'text-red-500' : 'text-blue-600'}`}>{formatTime(timeLeft)}</p>
+                     </div>
+                     <div>
+                         <h3 className="font-bold mb-2">Received SMS:</h3>
+                         <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-md min-h-[100px] flex items-center justify-center font-mono text-lg tracking-widest">
+                             {order.sms && order.sms.length > 0 ? order.sms[0].text : <Spinner />}
+                         </div>
+                     </div>
                  </div>
                  <div className="mt-6 flex justify-end space-x-4">
-                    <Button variant="secondary" onClick={handleCancel}>Cancel Order</Button>
-                    <Button onClick={handleFinish}>Mark as Finished</Button>
+                     <Button variant="secondary" onClick={handleCancel}>Cancel Order</Button>
+                     <Button onClick={handleFinish}>Mark as Finished</Button>
                  </div>
             </Card>
         </main>
@@ -938,7 +986,7 @@ const MainLayout = ({ user, page, setPage, profile, showToast }) => {
         };
     }, [user]);
 
-    const handlePurchase = async (service, server, operator) => {
+    const handlePurchase = async ({ service, server, operator, price }) => {
         if (activeOrder) {
             showToast("You already have an active order. Please complete or cancel it first.", "error");
             return;
@@ -956,7 +1004,7 @@ const MainLayout = ({ user, page, setPage, profile, showToast }) => {
                 if (!userDoc.exists()) throw new Error("User document does not exist!");
 
                 const currentBalance = userDoc.data().balance;
-                const itemPrice = operator.price;
+                const itemPrice = price;
                 
                 if (currentBalance < itemPrice) {
                     throw new Error("Insufficient balance. Please recharge your account.");
