@@ -412,7 +412,7 @@ const Sidebar = ({ user, setPage, onPurchase, showToast }) => {
     const filteredServices = services.filter(service => service.name?.toLowerCase().includes(serviceSearchTerm.toLowerCase()));
     const displayedServices = showAllServices ? filteredServices : filteredServices.slice(0, 10);
     const filteredServers = servers.filter(server => server.location?.toLowerCase().includes(serverSearchTerm.toLowerCase()));
-    const displayedServers = showAllServers ? filteredServers : filteredServers.slice(0, 0); // show less as a default
+    const displayedServers = showAllServices ? filteredServers : filteredServers.slice(0, 0); // show less as a default
 
     return (
         <aside className="w-full md:w-1/3 lg:w-1/4">
