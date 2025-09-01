@@ -352,7 +352,7 @@ const Sidebar = ({ user, setPage, onPurchase, showToast }) => {
       setSelectedServer(server);
       setLoading(prev => ({...prev, operators: true}));
       
-      const pricesByCountryAndService = prices[server.name]?.[selectedService.name];
+      const pricesByCountryAndService = prices?.[server.name]?.[selectedService.name];
       if (pricesByCountryAndService) {
         const formattedOperators = Object.entries(pricesByCountryAndService).map(([name, details]) => ({
           name,
@@ -458,7 +458,7 @@ const Sidebar = ({ user, setPage, onPurchase, showToast }) => {
                 </div>
                 
                 {/* Step 3: Select Operator */}
-                {selectedServer && (
+                {selectedServer && selectedService && (
                      <div>
                          <h3 className="font-bold mb-2 text-gray-800 dark:text-gray-200">3. Select operator</h3>
                          <div className="mt-2 h-48 overflow-y-auto">
@@ -1087,59 +1087,6 @@ const MainLayout = ({ user, page, setPage, profile, showToast }) => {
                 {isLoading ? <div className="w-full flex justify-center items-center"><Spinner /></div> : renderContent()}
             </div>
         </div>
-    );
-};
-
-
-// --- Main App Component ---
-
-function App() {
-    const [page, setPage] = useState('home');
-    const [user, setUser] = useState(null);
-    const [profile, setProfile] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [theme, setTheme] = useTheme();
-    const [toast, setToast] = useState(null);
-
-    const showToast = (message, type) => {
-        setToast({ message, type });
-    };
-
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-            setUser(currentUser);
-            if (!currentUser) {
-                setProfile(null);
-                if (['profile', 'history', 'recharge'].includes(page)) {
-                    setPage('home');
-                }
-            }
-            setLoading(false);
-        });
-        return () => unsubscribe();
-    }, [page]);
-    
-    useEffect(() => {
-        if (!user) return;
-        const unsub = onSnapshot(doc(db, "users", user.uid), (doc) => {
-            setProfile(doc.data());
-        });
-        return () => unsub();
-    }, [user]);
-
-    if (loading) {
-        return <div className="min-h-screen flex items-center justify-center bg-blue-50 dark:bg-gray-900"><Spinner /></div>;
-    }
-    
-    return (
-        <CurrencyProvider>
-            <div className="font-sans text-gray-900 bg-blue-50 dark:bg-gray-900 min-h-screen">
-                {toast && <Toast message={toast.message} type={toast.type} onDismiss={() => setToast(null)} />}
-                <Header user={user} profile={profile} setPage={setPage} theme={theme} setTheme={setTheme} />
-                <MainLayout user={user} page={page} setPage={setPage} profile={profile} showToast={showToast} />
-                <Footer setPage={setPage} />
-            </div>
-        </CurrencyProvider>
     );
 }
 
