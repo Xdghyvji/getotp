@@ -33,13 +33,13 @@ import {
 // --- FIREBASE CONFIGURATION ---
 // IMPORTANT: In a real project, these should be stored in environment variables (.env file)
 const firebaseConfig = {
-  apiKey: "AIzaSyBVruE0hRVZisHlnnyuWBl-PZp3-DMp028",
-  authDomain: "pakages-provider.firebaseapp.com",
-  projectId: "pakages-provider",
-  storageBucket: "pakages-provider.appspot.com",
-  messagingSenderId: "109547136506",
-  appId: "1:109547136506:web:c9d34657d73b0fcc3ef043",
-  measurementId: "G-672LC3842S"
+    apiKey: "AIzaSyBVruE0hRVZisHlnnyuWBl-PZp3-DMp028",
+    authDomain: "pakages-provider.firebaseapp.com",
+    projectId: "pakages-provider",
+    storageBucket: "pakages-provider.appspot.com",
+    messagingSenderId: "109547136506",
+    appId: "1:109547136506:web:c9d34657d73b0fcc3ef043",
+    measurementId: "G-672LC3842S"
 };
 
 // Initialize Firebase
@@ -225,42 +225,42 @@ const Footer = ({ setPage }) => (
     <footer className="bg-white dark:bg-gray-800 mt-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 border-t dark:border-gray-700">
             <div className="grid grid-cols-2 md:grid-cols-5 gap-8 text-sm">
-                 <div>
-                     <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-3">Need help?</h3>
-                     <Button onClick={() => {}} variant="secondary" className="w-full justify-center">Support</Button>
-                 </div>
-                 <div>
-                     <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-3">Useful links</h3>
-                     <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-                         <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('developers')}} className="hover:text-blue-600 dark:hover:text-blue-400">For developers</a></li>
-                     </ul>
-                 </div>
-                 <div>
-                     <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-3">For users</h3>
-                     <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-                         <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('cookies')}} className="hover:text-blue-600 dark:hover:text-blue-400">Cookies</a></li>
-                         <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('delivery')}} className="hover:text-blue-600 dark:hover:text-blue-400">Delivery policy</a></li>
-                         <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('terms')}} className="hover:text-blue-600 dark:hover:text-blue-400">Terms and conditions</a></li>
-                         <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('privacy')}} className="hover:text-blue-600 dark:hover:text-blue-400">Privacy policy</a></li>
-                         <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('refund')}} className="hover:text-blue-600 dark:hover:text-blue-400">Refund policy</a></li>
-                     </ul>
-                 </div>
-                 <div>
-                     <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-3">GetOTP.net</h3>
-                     <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-                         <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('about')}} className="hover:text-blue-600 dark:hover:text-blue-400">About the service</a></li>
-                         <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('contacts')}} className="hover:text-blue-600 dark:hover:text-blue-400">Contacts</a></li>
-                         <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('rules')}} className="hover:text-blue-600 dark:hover:text-blue-400">Rules</a></li>
-                     </ul>
-                 </div>
-                 <div>
-                     <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-3">Social networks</h3>
-                     <div className="flex space-x-4">
-                         <a href="#" className="hover:opacity-80"><FacebookIcon /></a>
-                         <a href="#" className="hover:opacity-80"><TwitterIcon /></a>
-                         <a href="#" className="hover:opacity-80"><TelegramIcon /></a>
-                     </div>
-                 </div>
+                <div>
+                    <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-3">Need help?</h3>
+                    <Button onClick={() => {}} variant="secondary" className="w-full justify-center">Support</Button>
+                </div>
+                <div>
+                    <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-3">Useful links</h3>
+                    <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                        <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('developers')}} className="hover:text-blue-600 dark:hover:text-blue-400">For developers</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-3">For users</h3>
+                    <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                        <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('cookies')}} className="hover:text-blue-600 dark:hover:text-blue-400">Cookies</a></li>
+                        <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('delivery')}} className="hover:text-blue-600 dark:hover:text-blue-400">Delivery policy</a></li>
+                        <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('terms')}} className="hover:text-blue-600 dark:hover:text-blue-400">Terms and conditions</a></li>
+                        <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('privacy')}} className="hover:text-blue-600 dark:hover:text-blue-400">Privacy policy</a></li>
+                        <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('refund')}} className="hover:text-blue-600 dark:hover:text-blue-400">Refund policy</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-3">GetOTP.net</h3>
+                    <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                        <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('about')}} className="hover:text-blue-600 dark:hover:text-blue-400">About the service</a></li>
+                        <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('contacts')}} className="hover:text-blue-600 dark:hover:text-blue-400">Contacts</a></li>
+                        <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('rules')}} className="hover:text-blue-600 dark:hover:text-blue-400">Rules</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-3">Social networks</h3>
+                    <div className="flex space-x-4">
+                        <a href="#" className="hover:opacity-80"><FacebookIcon /></a>
+                        <a href="#" className="hover:opacity-80"><TwitterIcon /></a>
+                        <a href="#" className="hover:opacity-80"><TelegramIcon /></a>
+                    </div>
+                </div>
             </div>
             <div className="mt-8 text-center text-xs text-gray-500 dark:text-gray-400">
                 GetOTP.net © 2016-{new Date().getFullYear()}
@@ -303,6 +303,7 @@ const Sidebar = ({ user, setPage, onPurchase, showToast }) => {
     
     const [selectedService, setSelectedService] = useState(null);
     const [selectedServer, setSelectedServer] = useState(null);
+    const [selectedOperator, setSelectedOperator] = useState(null); // New state for selected operator
     const [operators, setOperators] = useState([]);
     
     const [showAllServices, setShowAllServices] = useState(false);
@@ -325,21 +326,47 @@ const Sidebar = ({ user, setPage, onPurchase, showToast }) => {
         setLoading(prev => ({...prev, servers: false}));
       });
 
-      // Listen for prices data
-      const unsubPrices = onSnapshot(doc(db, "prices", "5sim"), (doc) => {
-        if (doc.exists()) {
-          setPrices(doc.data());
-        } else {
-          setPrices({});
-        }
-      });
-
-      return () => { unsubServices(); unsubServers(); unsubPrices(); };
+      return () => { unsubServices(); unsubServers(); };
     }, []);
+
+    const getOperatorsAndPrices = async (country, product) => {
+        if (!country || !product) {
+            setOperators([]);
+            return;
+        }
+
+        setLoading(prev => ({ ...prev, operators: true }));
+        setOperators([]);
+
+        try {
+            const userToken = user ? await auth.currentUser.getIdToken() : null;
+            const endpoint = `/guest/prices?country=${country.toLowerCase()}&product=${product.toLowerCase()}`;
+            const apiData = await apiCall('5sim', endpoint, userToken);
+            
+            if (apiData[country] && apiData[country][product]) {
+                const fetchedOperators = Object.entries(apiData[country][product]).map(([name, details]) => ({
+                    name,
+                    price: details.cost,
+                    qty: details.count,
+                }));
+                setOperators(fetchedOperators);
+            } else {
+                setOperators([]);
+            }
+
+        } catch (error) {
+            console.error("Failed to fetch operators:", error);
+            showToast('Failed to load operators. Please try again.', 'error');
+            setOperators([]);
+        } finally {
+            setLoading(prev => ({ ...prev, operators: false }));
+        }
+    };
 
     const handleServiceSelect = (service) => {
       setSelectedService(service);
       setSelectedServer(null);
+      setSelectedOperator(null);
       setOperators([]);
       showToast(`Selected: ${service.name}. Now select a country.`, 'info');
     };
@@ -350,45 +377,42 @@ const Sidebar = ({ user, setPage, onPurchase, showToast }) => {
         return;
       }
       setSelectedServer(server);
-      setLoading(prev => ({...prev, operators: true}));
-      
-      const pricesByCountryAndService = prices?.[server.name]?.[selectedService.name];
-      if (pricesByCountryAndService) {
-        const formattedOperators = Object.entries(pricesByCountryAndService).map(([name, details]) => ({
-          name,
-          price: details.cost,
-          qty: details.count,
-        }));
-        setOperators(formattedOperators);
-      } else {
-        setOperators([]);
-      }
-      setLoading(prev => ({...prev, operators: false}));
+      setSelectedOperator(null);
+      setOperators([]);
+      getOperatorsAndPrices(server.name, selectedService.name);
+      showToast(`Selected: ${server.location}. Now select an operator.`, 'info');
     };
 
     const handleOperatorSelect = (operator) => {
-        if (!user) {
-            showToast("Please log in to purchase.", "info");
-            setPage('login');
-            return;
-        }
-        if (!selectedService || !selectedServer) return;
-        
-        // Pass the actual price from the provider, not the client-side price
-        const priceToCharge = selectedService.price;
-        
-        onPurchase({
-            service: selectedService, 
-            server: selectedServer, 
-            operator: operator,
-            price: priceToCharge
-        });
+      setSelectedOperator(operator);
+    };
+
+    const handlePurchaseClick = () => {
+      if (!user) {
+          showToast("Please log in to purchase.", "info");
+          setPage('login');
+          return;
+      }
+      if (!selectedService || !selectedServer || !selectedOperator) {
+        showToast("Please select a service, country, and operator first.", "error");
+        return;
+      }
+      // The price is now dynamically fetched from the API for the selected operator
+      // We'll use the price from the selected operator object.
+      const priceToCharge = selectedOperator.price;
+      
+      onPurchase({
+          service: selectedService, 
+          server: selectedServer, 
+          operator: selectedOperator,
+          price: priceToCharge
+      });
     };
 
     const filteredServices = services.filter(service => service.name?.toLowerCase().includes(serviceSearchTerm.toLowerCase()));
     const displayedServices = showAllServices ? filteredServices : filteredServices.slice(0, 10);
     const filteredServers = servers.filter(server => server.location?.toLowerCase().includes(serverSearchTerm.toLowerCase()));
-    const displayedServers = showAllServers ? filteredServers : filteredServers.slice(0, 10);
+    const displayedServers = showAllServers ? filteredServers : filteredServers.slice(0, 0); // show less as a default
 
     return (
         <aside className="w-full md:w-1/3 lg:w-1/4">
@@ -407,7 +431,7 @@ const Sidebar = ({ user, setPage, onPurchase, showToast }) => {
                         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     </div>
                     <div className="mt-2 h-48 overflow-y-auto">
-                        {loading.services ? <Spinner /> : displayedServices.map(service => (
+                        {loading.services ? <Spinner /> : filteredServices.map(service => (
                             <div key={service.id} onClick={() => handleServiceSelect(service)} 
                                 className={`flex items-center justify-between p-2 rounded-md cursor-pointer ${selectedService?.id === service.id ? 'bg-blue-100 dark:bg-blue-900/50' : 'hover:bg-blue-50 dark:hover:bg-gray-700'}`}>
                                 <div className="flex items-center space-x-3">
@@ -417,66 +441,57 @@ const Sidebar = ({ user, setPage, onPurchase, showToast }) => {
                             </div>
                         ))}
                     </div>
-                    {filteredServices.length > 10 && (
-                        <div className="mt-2 flex justify-center">
-                            <button onClick={() => setShowAllServices(!showAllServices)} className="flex items-center text-sm text-blue-600 hover:underline">
-                                {showAllServices ? 'Show less' : `Show all ${filteredServices.length}`} <RightArrowIcon className={`ml-1 w-4 h-4 transition-transform ${showAllServices ? 'rotate-90' : ''}`} />
-                            </button>
-                        </div>
-                    )}
                 </div>
 
                 {/* Step 2: Select Country */}
                 <div>
                     <h3 className="font-bold mb-2 text-gray-800 dark:text-gray-200">2. Select country</h3>
                     <div className="relative mb-2">
-                         <input 
-                            type="text" 
-                            placeholder="Find country" 
-                            className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-transparent"
-                            value={serverSearchTerm}
-                            onChange={e => setServerSearchTerm(e.target.value)}
-                        />
-                        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                            <input 
+                                type="text" 
+                                placeholder="Find country" 
+                                className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-transparent"
+                                value={serverSearchTerm}
+                                onChange={e => setServerSearchTerm(e.target.value)}
+                            />
+                            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     </div>
                     <div className={`mt-2 h-48 overflow-y-auto ${!selectedService ? 'opacity-50' : ''}`}>
-                        {loading.servers ? <Spinner /> : displayedServers.map(server => (
+                        {loading.servers ? <Spinner /> : filteredServers.map(server => (
                             <div key={server.id} onClick={() => selectedService && handleServerSelect(server)} 
                                 className={`flex items-center p-2 rounded-md ${!selectedService ? 'cursor-not-allowed' : 'cursor-pointer'} ${selectedServer?.id === server.id ? 'bg-blue-100 dark:bg-blue-900/50' : 'hover:bg-blue-50 dark:hover:bg-gray-700'}`}>
-                                {server.iso && <img src={`https://flagcdn.com/w20/${server.iso.toLowerCase()}.png`} alt={`${server.location} flag`} className="w-8 h-auto inline-block mr-3" />}
-                                <span className="font-medium text-gray-800 dark:text-gray-200">{server.location}</span>
+                                <div className="flex items-center space-x-3">
+                                  {server.iso && <img src={`https://flagcdn.com/w20/${server.iso.toLowerCase()}.png`} onError={(e) => {e.target.style.display = 'none';}} alt={`${server.location} flag`} className="w-8 h-auto inline-block mr-3" />}
+                                  <span className="font-medium text-gray-800 dark:text-gray-200">{server.location}</span>
+                                </div>
                             </div>
                         ))}
                     </div>
-                    {filteredServers.length > 10 && (
-                        <div className="mt-2 flex justify-center">
-                            <button onClick={() => setShowAllServers(!showAllServers)} className="flex items-center text-sm text-blue-600 hover:underline">
-                                {showAllServers ? 'Show less' : `Show all ${filteredServers.length}`} <RightArrowIcon className={`ml-1 w-4 h-4 transition-transform ${showAllServers ? 'rotate-90' : ''}`} />
-                            </button>
-                        </div>
-                    )}
                 </div>
                 
                 {/* Step 3: Select Operator */}
-                {selectedServer && selectedService && (
-                     <div>
-                         <h3 className="font-bold mb-2 text-gray-800 dark:text-gray-200">3. Select operator</h3>
-                         <div className="mt-2 h-48 overflow-y-auto">
-                             {loading.operators ? <Spinner /> : 
-                                 operators.length > 0 ? operators.map(op => (
-                                 <div key={op.name} onClick={() => handleOperatorSelect(op)} 
-                                     className="flex items-center justify-between p-2 hover:bg-blue-50 dark:hover:bg-gray-700 rounded-md cursor-pointer">
-                                     <span className="font-medium text-gray-800 dark:text-gray-200">{op.name}</span>
-                                     <div className="text-right text-sm">
-                                         <p className="text-gray-500 dark:text-gray-400">{op.qty} pcs.</p>
-                                         <p className="font-bold text-blue-600">{currencySymbol}{convertCurrency(selectedService.price)}</p>
-                                     </div>
-                                 </div>
-                             )) : <p className="text-sm text-gray-500 text-center p-4">No operators found for this selection.</p>
-                             }
-                         </div>
-                     </div>
+                {(selectedService && selectedServer) && (
+                    <div>
+                        <h3 className="font-bold mb-2 text-gray-800 dark:text-gray-200">3. Select operator</h3>
+                        <div className="mt-2 h-48 overflow-y-auto">
+                            {loading.operators ? <Spinner /> : 
+                                operators.length > 0 ? operators.map(op => (
+                                <div key={op.name} onClick={() => handleOperatorSelect(op)} 
+                                    className={`flex items-center justify-between p-2 rounded-md ${selectedOperator?.name === op.name ? 'bg-blue-100 dark:bg-blue-900/50' : 'hover:bg-blue-50 dark:hover:bg-gray-700'} cursor-pointer`}>
+                                    <span className="font-medium text-gray-800 dark:text-gray-200">{op.name}</span>
+                                    <div className="text-right text-sm">
+                                        <p className="text-gray-500 dark:text-gray-400">{op.qty} pcs.</p>
+                                        <p className="font-bold text-blue-600">{currencySymbol}{convertCurrency(op.price)}</p>
+                                    </div>
+                                </div>
+                                )) : <p className="text-sm text-gray-500 text-center p-4">No operators found for this selection.</p>
+                            }
+                        </div>
+                    </div>
                 )}
+                <Button onClick={handlePurchaseClick} disabled={!selectedService || !selectedServer || !selectedOperator} className="w-full">
+                    Purchase Number
+                </Button>
             </Card>
         </aside>
     );
@@ -569,9 +584,10 @@ const NumbersHistory = ({ user }) => {
                 const data = doc.data();
                 const statusMap = {
                     'PENDING': 'bg-yellow-100 text-yellow-800',
-                    'FINISHED': 'bg-green-100 text-green-800',
+                    'RECEIVED': 'bg-green-100 text-green-800',
                     'CANCELED': 'bg-red-100 text-red-800',
                     'EXPIRED': 'bg-gray-100 text-gray-800',
+                    'FINISHED': 'bg-blue-100 text-blue-800'
                 };
                 return {
                     phone: data.phone, 
@@ -921,32 +937,32 @@ const ActiveOrder = ({ user, orderData, onUpdateStatus, showToast }) => {
     return (
         <main className="w-full md:w-2/3 lg:w-3/4">
             <Card className="p-6 animate-fade-in">
-                 <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Active Order</h1>
-                 <div className="space-y-4 text-gray-800 dark:text-gray-200">
-                     <p><strong>Service:</strong> {order.product}</p>
-                     <div className="flex items-center space-x-2">
-                         <strong>Phone Number:</strong> 
-                         <span className="font-mono bg-gray-200 dark:bg-gray-700 p-2 rounded">{order.phone}</span>
-                         <button onClick={() => handleCopy(order.phone)} className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600">
+                <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Active Order</h1>
+                <div className="space-y-4 text-gray-800 dark:text-gray-200">
+                    <p><strong>Service:</strong> {order.product}</p>
+                    <div className="flex items-center space-x-2">
+                        <strong>Phone Number:</strong> 
+                        <span className="font-mono bg-gray-200 dark:bg-gray-700 p-2 rounded">{order.phone}</span>
+                        <button onClick={() => handleCopy(order.phone)} className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600">
                             {copied ? <CheckIcon /> : <ClipboardIcon />}
-                         </button>
-                     </div>
-                     <p><strong>Status:</strong> <span className={`font-bold ${order.sms ? 'text-green-500' : 'text-yellow-500'}`}>{order.status}</span></p>
-                     <div className="text-center my-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                         <p className="text-lg">Time Remaining</p>
-                         <p className={`text-4xl font-bold ${timeLeft < 60 ? 'text-red-500' : 'text-blue-600'}`}>{formatTime(timeLeft)}</p>
-                     </div>
-                     <div>
-                         <h3 className="font-bold mb-2">Received SMS:</h3>
-                         <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-md min-h-[100px] flex items-center justify-center font-mono text-lg tracking-widest">
-                             {order.sms && order.sms.length > 0 ? order.sms[0].text : <Spinner />}
-                         </div>
-                     </div>
-                 </div>
-                 <div className="mt-6 flex justify-end space-x-4">
-                     <Button variant="secondary" onClick={handleCancel}>Cancel Order</Button>
-                     <Button onClick={handleFinish}>Mark as Finished</Button>
-                 </div>
+                        </button>
+                    </div>
+                    <p><strong>Status:</strong> <span className={`font-bold ${order.sms ? 'text-green-500' : 'text-yellow-500'}`}>{order.status}</span></p>
+                    <div className="text-center my-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                        <p className="text-lg">Time Remaining</p>
+                        <p className={`text-4xl font-bold ${timeLeft < 60 ? 'text-red-500' : 'text-blue-600'}`}>{formatTime(timeLeft)}</p>
+                    </div>
+                    <div>
+                        <h3 className="font-bold mb-2">Received SMS:</h3>
+                        <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-md min-h-[100px] flex items-center justify-center font-mono text-lg tracking-widest">
+                            {order.sms && order.sms.length > 0 ? order.sms[0].text : <Spinner />}
+                        </div>
+                    </div>
+                </div>
+                <div className="mt-6 flex justify-end space-x-4">
+                    <Button variant="secondary" onClick={handleCancel}>Cancel Order</Button>
+                    <Button onClick={handleFinish}>Mark as Finished</Button>
+                </div>
             </Card>
         </main>
     );
@@ -1012,7 +1028,7 @@ const MainLayout = ({ user, page, setPage, profile, showToast }) => {
 
                 // Call the REAL API via our proxy to get a number
                 // Endpoint from documentation: /v1/user/buy/activation/$country/$operator/$product
-                const endpoint = `/user/buy/activation/${server.name}/${operator.name}/${service.name}`;
+                const endpoint = `/user/buy/activation/${server.name.toLowerCase()}/${operator.name.toLowerCase()}/${service.name.toLowerCase()}`;
                 const purchaseData = await apiCall(service.provider, endpoint, userToken);
 
                 const newOrder = {
@@ -1087,6 +1103,59 @@ const MainLayout = ({ user, page, setPage, profile, showToast }) => {
                 {isLoading ? <div className="w-full flex justify-center items-center"><Spinner /></div> : renderContent()}
             </div>
         </div>
+    );
+};
+
+
+// --- Main App Component ---
+
+function App() {
+    const [page, setPage] = useState('home');
+    const [user, setUser] = useState(null);
+    const [profile, setProfile] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [theme, setTheme] = useTheme();
+    const [toast, setToast] = useState(null);
+
+    const showToast = (message, type) => {
+        setToast({ message, type });
+    };
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+            setUser(currentUser);
+            if (!currentUser) {
+                setProfile(null);
+                if (['profile', 'history', 'recharge'].includes(page)) {
+                    setPage('home');
+                }
+            }
+            setLoading(false);
+        });
+        return () => unsubscribe();
+    }, [page]);
+    
+    useEffect(() => {
+        if (!user) return;
+        const unsub = onSnapshot(doc(db, "users", user.uid), (doc) => {
+            setProfile(doc.data());
+        });
+        return () => unsub();
+    }, [user]);
+
+    if (loading) {
+        return <div className="min-h-screen flex items-center justify-center bg-blue-50 dark:bg-gray-900"><Spinner /></div>;
+    }
+    
+    return (
+        <CurrencyProvider>
+            <div className="font-sans text-gray-900 bg-blue-50 dark:bg-gray-900 min-h-screen">
+                {toast && <Toast message={toast.message} type={toast.type} onDismiss={() => setToast(null)} />}
+                <Header user={user} profile={profile} setPage={setPage} theme={theme} setTheme={setTheme} />
+                <MainLayout user={user} page={page} setPage={setPage} profile={profile} showToast={showToast} />
+                <Footer setPage={setPage} />
+            </div>
+        </CurrencyProvider>
     );
 }
 
