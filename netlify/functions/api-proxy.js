@@ -1,7 +1,7 @@
 // --- Netlify Function: /netlify/functions/api-proxy.js ---
 // This function dynamically fetches API provider details from Firestore.
 
-import fetch from 'node-fetch';
+import { request } from 'undici';
 import admin from 'firebase-admin';
 
 // --- Initialize Firebase Admin SDK ---
@@ -78,23 +78,21 @@ exports.handler = async function(event, context) {
     const headers = {
       'Authorization': `Bearer ${apiKey}`,
       'Accept': 'application/json',
+      'Content-Type': 'application/json',
     };
 
     const options = {
       method: method,
       headers: headers,
+      body: body ? JSON.stringify(body) : undefined,
     };
-
-    if (method !== 'GET' && body) {
-      options.body = JSON.stringify(body);
-      headers['Content-Type'] = 'application/json';
-    }
-
-    const response = await fetch(apiUrl, options);
-    const data = await response.json();
+    
+    // Use undici.request for a more robust and compatible HTTP call
+    const response = await request(apiUrl, options);
+    const data = await response.body.json();
 
     return {
-      statusCode: response.status,
+      statusCode: response.statusCode,
       body: JSON.stringify(data),
     };
 
