@@ -1,11 +1,8 @@
 // --- Netlify Function: /netlify/functions/api-proxy.js ---
 // This function dynamically fetches API provider details from Firestore.
 
-// You need to add firebase-admin and node-fetch to your project's dependencies.
-// Run in your terminal: npm install firebase-admin node-fetch
-// Use a dynamic import for node-fetch to be compatible with ES Modules
-const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
-const admin = require('firebase-admin');
+import fetch from 'node-fetch';
+import admin from 'firebase-admin';
 
 // --- Initialize Firebase Admin SDK ---
 // IMPORTANT: You must create a service account key in your Firebase project settings.
