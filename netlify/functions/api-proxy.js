@@ -12,10 +12,21 @@ const initializeLibraries = async () => {
 
   // Initialize Firebase Admin SDK
   try {
+    const { FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY } = process.env;
+
+    if (!FIREBASE_PROJECT_ID || !FIREBASE_CLIENT_EMAIL || !FIREBASE_PRIVATE_KEY) {
+      throw new Error("Missing one or more required Firebase Admin environment variables.");
+    }
+    
+    // Check if a Firebase app has already been initialized to prevent multiple initializations.
     if (!admin.apps.length) {
-      const serviceAccount = JSON.parse(Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_KEY_BASE64, 'base64').toString('utf8'));
       admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount)
+        credential: admin.credential.cert({
+          projectId: FIREBASE_PROJECT_ID,
+          clientEmail: FIREBASE_CLIENT_EMAIL,
+          // The private key may contain literal `\n` characters which need to be replaced with actual newlines
+          privateKey: FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+        })
       });
     }
   } catch (e) {
