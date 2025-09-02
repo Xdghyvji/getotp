@@ -1,24 +1,14 @@
 // --- Netlify Function: /netlify/functions/api-proxy.js ---
 // This function dynamically fetches API provider details from Firestore.
 
-// Use dynamic import for ES module compatibility
-const getLibraries = async () => {
-  const fetch = await import('node-fetch');
-  const admin = await import('firebase-admin');
-  return { fetch: fetch.default, admin: admin.default };
-};
+import admin from 'firebase-admin';
 
 // Global variables that will be populated once
-let fetch;
-let admin;
 let db;
 let apiProvidersCache = null;
 
 const initializeLibraries = async () => {
-  if (fetch && admin) return;
-  const libs = await getLibraries();
-  fetch = libs.fetch;
-  admin = libs.admin;
+  if (db) return;
 
   // Initialize Firebase Admin SDK
   try {
@@ -102,7 +92,7 @@ exports.handler = async function(event, context) {
       body: body ? JSON.stringify(body) : undefined,
     };
     
-    // Use node-fetch with require() for robust compatibility
+    // Use native Node.js fetch API for robust compatibility
     const response = await fetch(apiUrl, options);
     const data = await response.json();
 
