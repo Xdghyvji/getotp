@@ -1,27 +1,39 @@
 // --- Netlify Function: /netlify/functions/api-proxy.js ---
 // This function dynamically fetches API provider details from Firestore.
 
-// Use require() for CommonJS compatibility
-const fetch = require('node-fetch');
-const admin = require('firebase-admin');
+// Use dynamic import for ES module compatibility
+const getLibraries = async () => {
+  const fetch = await import('node-fetch');
+  const admin = await import('firebase-admin');
+  return { fetch: fetch.default, admin: admin.default };
+};
 
-// --- Initialize Firebase Admin SDK ---
-// IMPORTANT: You must create a service account key in your Firebase project settings.
-// Then, you need to Base64-encode the entire JSON file content and store it
-// as a single environment variable in Netlify named: FIREBASE_SERVICE_ACCOUNT_KEY_BASE64
-try {
-  if (!admin.apps.length) {
-    const serviceAccount = JSON.parse(Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_KEY_BASE64, 'base64').toString('utf8'));
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount)
-    });
+// Global variables that will be populated once
+let fetch;
+let admin;
+let db;
+let apiProvidersCache = null;
+
+const initializeLibraries = async () => {
+  if (fetch && admin) return;
+  const libs = await getLibraries();
+  fetch = libs.fetch;
+  admin = libs.admin;
+
+  // Initialize Firebase Admin SDK
+  try {
+    if (!admin.apps.length) {
+      const serviceAccount = JSON.parse(Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_KEY_BASE64, 'base64').toString('utf8'));
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount)
+      });
+    }
+  } catch (e) {
+    console.error('Firebase Admin initialization error:', e);
+    throw new Error('Server configuration error: Firebase Admin not initialized.');
   }
-} catch (e) {
-  console.error('Firebase Admin initialization error:', e);
-}
-
-const db = admin.firestore();
-let apiProvidersCache = null; // Cache providers to reduce Firestore reads on every call
+  db = admin.firestore();
+};
 
 // --- Function to get (and cache) API providers from Firestore ---
 async function getApiProviders() {
@@ -45,6 +57,8 @@ async function getApiProviders() {
 
 
 exports.handler = async function(event, context) {
+  await initializeLibraries();
+  
   // Only allow POST requests
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
