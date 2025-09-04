@@ -12,7 +12,8 @@ if (!admin.apps.length) {
     });
 }
 
-// Handler for the Netlify Function
+const db = admin.firestore();
+
 exports.handler = async (event, context) => {
     if (event.httpMethod !== 'POST') {
         return { statusCode: 405, body: 'Method Not Allowed' };
@@ -31,10 +32,19 @@ exports.handler = async (event, context) => {
         
         const { action, payload } = JSON.parse(event.body);
 
+        // Fetch API credentials from Firestore
+        const providerRef = db.collection('api_providers').doc(payload.provider || '5sim');
+        const providerDoc = await providerRef.get();
+        if (!providerDoc.exists) {
+            return { statusCode: 404, body: JSON.stringify({ error: `API provider '${payload.provider || '5sim'}' not found.` }) };
+        }
+        const providerData = providerDoc.data();
+        const apiKey = providerData.apiKey;
+        const baseUrl = providerData.baseUrl;
+
         let apiUrl = '';
-        let apiHeaders = {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.FIVESIM_API_KEY}`,
+        const apiHeaders = {
+            'Authorization': `Bearer ${apiKey}`,
             'Accept': 'application/json'
         };
 
@@ -43,51 +53,99 @@ exports.handler = async (event, context) => {
         switch (action) {
             case 'getPrices':
                 // Endpoint: /v1/guest/prices?country=$country&product=$product
-                // Note: guest endpoints do not require the Authorization header
                 const { country, product } = payload;
                 const priceQuery = new URLSearchParams();
                 if (country) priceQuery.append('country', country);
                 if (product) priceQuery.append('product', product);
-                apiUrl = `https://5sim.net/v1/guest/prices?${priceQuery.toString()}`;
-                apiHeaders = { 'Accept': 'application/json' };
-                responseData = await fetch(apiUrl, { headers: apiHeaders }).then(res => res.json());
+                apiUrl = `${baseUrl}/guest/prices?${priceQuery.toString()}`;
+                responseData = await fetch(apiUrl, { headers: { 'Accept': 'application/json' } }).then(res => res.json());
                 break;
 
             case 'buyNumber':
                 // Endpoint: /v1/user/buy/activation/$country/$operator/$product
                 const { service, server, operator } = payload;
-                apiUrl = `https://5sim.net/v1/user/buy/activation/${server.name}/${operator.name}/${service.name.toLowerCase()}`;
+                apiUrl = `${baseUrl}/user/buy/activation/${server.name}/${operator.name}/${service.name.toLowerCase()}`;
                 responseData = await fetch(apiUrl, { headers: apiHeaders }).then(res => res.json());
                 break;
 
             case 'checkOrder':
                 // Endpoint: /v1/user/check/$id
                 const { orderId } = payload;
-                apiUrl = `https://5sim.net/v1/user/check/${orderId}`;
+                apiUrl = `${baseUrl}/user/check/${orderId}`;
                 responseData = await fetch(apiUrl, { headers: apiHeaders }).then(res => res.json());
                 break;
                 
             case 'cancelOrder':
                 // Endpoint: /v1/user/cancel/$id
-                apiUrl = `https://5sim.net/v1/user/cancel/${payload.orderId}`;
+                apiUrl = `${baseUrl}/user/cancel/${payload.orderId}`;
                 responseData = await fetch(apiUrl, { headers: apiHeaders }).then(res => res.json());
                 break;
                 
             case 'finishOrder':
                 // Endpoint: /v1/user/finish/$id
-                apiUrl = `https://5sim.net/v1/user/finish/${payload.orderId}`;
+                apiUrl = `${baseUrl}/user/finish/${payload.orderId}`;
                 responseData = await fetch(apiUrl, { headers: apiHeaders }).then(res => res.json());
                 break;
+            
+            case 'syncProviderData':
+                const vendorApiKey = providerData.vendorApiKey;
+                if (!vendorApiKey) {
+                    throw new Error('FIVESIM_VENDOR_API_KEY is not set for this provider in Firestore.');
+                }
+                const vendorHeaders = { 'Authorization': `Bearer ${vendorApiKey}`, 'Accept': 'application/json' };
+                
+                const pricesResponse = await fetch(`${baseUrl}/vendor/prices`, { headers: vendorHeaders });
+                const countriesResponse = await fetch(`${baseUrl}/guest/countries`, { headers: { 'Accept': 'application/json' } });
+                
+                if (!pricesResponse.ok || !countriesResponse.ok) {
+                    const errorText = await (pricesResponse.ok ? countriesResponse.text() : pricesResponse.text());
+                    throw new Error(`Failed to fetch data from provider: ${pricesResponse.status} - ${errorText}`);
+                }
+                
+                const pricesData = await pricesResponse.json();
+                const countriesData = await countriesResponse.json();
+
+                const batch = db.batch();
+                
+                // 1. Process and save services
+                const servicesCollectionRef = db.collection('services');
+                const uniqueServices = new Set();
+                pricesData.Prices.forEach(price => uniqueServices.add(price.ProductName));
+        
+                for (const serviceName of Array.from(uniqueServices)) {
+                    const serviceRef = servicesCollectionRef.doc(serviceName);
+                    batch.set(serviceRef, {
+                        name: serviceName,
+                        icon: null,
+                        provider: providerData.name,
+                        status: 'active',
+                        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                    }, { merge: true });
+                }
+        
+                // 2. Process and save countries (servers)
+                const serversCollectionRef = db.collection('servers');
+                const servers = Object.keys(countriesData).map(key => ({
+                    name: key,
+                    location: countriesData[key].text_en,
+                    iso: Object.keys(countriesData[key].iso)[0],
+                    status: 'active',
+                }));
+                
+                servers.forEach(server => {
+                    const serverRef = serversCollectionRef.doc(server.name);
+                    batch.set(serverRef, server, { merge: true });
+                });
+        
+                await batch.commit();
+
+                return { message: `Successfully synced ${uniqueServices.size} services and ${servers.length} countries.` };
 
             default:
                 return { statusCode: 400, body: JSON.stringify({ error: 'Invalid action specified.' }) };
         }
 
-        // Check for common API errors from 5sim.net
-        if (responseData && responseData.status === '400') {
-             throw new Error(responseData.error || '5sim.net API returned an error.');
-        }``
-
+        // Return a response for successful calls that don't need to be handled above
         return {
             statusCode: 200,
             body: JSON.stringify(responseData),
