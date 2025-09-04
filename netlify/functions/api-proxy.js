@@ -39,51 +39,62 @@ exports.handler = async (event, context) => {
             return { statusCode: 404, body: JSON.stringify({ error: `API provider '${payload.provider || '5sim'}' not found.` }) };
         }
         const providerData = providerDoc.data();
-        const apiKey = providerData.apiKey;
-        const baseUrl = providerData.baseUrl;
-
+        
         let apiUrl = '';
-        const apiHeaders = {
-            'Authorization': `Bearer ${apiKey}`,
-            'Accept': 'application/json'
-        };
-
+        let apiHeaders = {};
         let responseData;
         
         switch (action) {
             case 'getPrices':
-                // Endpoint: /v1/guest/prices?country=$country&product=$product
+                // Note: guest endpoints do not require an Authorization header
                 const { country, product } = payload;
                 const priceQuery = new URLSearchParams();
                 if (country) priceQuery.append('country', country);
                 if (product) priceQuery.append('product', product);
-                apiUrl = `${baseUrl}/guest/prices?${priceQuery.toString()}`;
-                responseData = await fetch(apiUrl, { headers: { 'Accept': 'application/json' } }).then(res => res.json());
+                apiUrl = `${providerData.baseUrl}/guest/prices?${priceQuery.toString()}`;
+                apiHeaders = { 'Accept': 'application/json' };
+                responseData = await fetch(apiUrl, { headers: apiHeaders }).then(res => res.json());
                 break;
 
             case 'buyNumber':
-                // Endpoint: /v1/user/buy/activation/$country/$operator/$product
                 const { service, server, operator } = payload;
-                apiUrl = `${baseUrl}/user/buy/activation/${server.name}/${operator.name}/${service.name.toLowerCase()}`;
+                apiUrl = `${providerData.baseUrl}/user/buy/activation/${server.name}/${operator.name}/${service.name.toLowerCase()}`;
+                apiHeaders = {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${providerData.apiKey}`,
+                    'Accept': 'application/json'
+                };
                 responseData = await fetch(apiUrl, { headers: apiHeaders }).then(res => res.json());
                 break;
 
             case 'checkOrder':
-                // Endpoint: /v1/user/check/$id
                 const { orderId } = payload;
-                apiUrl = `${baseUrl}/user/check/${orderId}`;
+                apiUrl = `${providerData.baseUrl}/user/check/${orderId}`;
+                apiHeaders = {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${providerData.apiKey}`,
+                    'Accept': 'application/json'
+                };
                 responseData = await fetch(apiUrl, { headers: apiHeaders }).then(res => res.json());
                 break;
                 
             case 'cancelOrder':
-                // Endpoint: /v1/user/cancel/$id
-                apiUrl = `${baseUrl}/user/cancel/${payload.orderId}`;
+                apiUrl = `${providerData.baseUrl}/user/cancel/${payload.orderId}`;
+                apiHeaders = {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${providerData.apiKey}`,
+                    'Accept': 'application/json'
+                };
                 responseData = await fetch(apiUrl, { headers: apiHeaders }).then(res => res.json());
                 break;
                 
             case 'finishOrder':
-                // Endpoint: /v1/user/finish/$id
-                apiUrl = `${baseUrl}/user/finish/${payload.orderId}`;
+                apiUrl = `${providerData.baseUrl}/user/finish/${payload.orderId}`;
+                apiHeaders = {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${providerData.apiKey}`,
+                    'Accept': 'application/json'
+                };
                 responseData = await fetch(apiUrl, { headers: apiHeaders }).then(res => res.json());
                 break;
             
@@ -94,8 +105,8 @@ exports.handler = async (event, context) => {
                 }
                 const vendorHeaders = { 'Authorization': `Bearer ${vendorApiKey}`, 'Accept': 'application/json' };
                 
-                const pricesResponse = await fetch(`${baseUrl}/vendor/prices`, { headers: vendorHeaders });
-                const countriesResponse = await fetch(`${baseUrl}/guest/countries`, { headers: { 'Accept': 'application/json' } });
+                const pricesResponse = await fetch(`${providerData.baseUrl}/vendor/prices`, { headers: vendorHeaders });
+                const countriesResponse = await fetch(`${providerData.baseUrl}/guest/countries`, { headers: { 'Accept': 'application/json' } });
                 
                 if (!pricesResponse.ok || !countriesResponse.ok) {
                     const errorText = await (pricesResponse.ok ? countriesResponse.text() : pricesResponse.text());
