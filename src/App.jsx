@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, createContext, useContext } from 'react';
-
+// --- TAILWIND CSS SCRIPT ---
+// This script enables Tailwind CSS classes on the fly.
+// <script src="https://cdn.tailwindcss.com"></script>
 // --- FIREBASE IMPORTS ---
 import { initializeApp } from 'firebase/app';
 import { 
@@ -31,15 +33,15 @@ import {
 
 
 // --- FIREBASE CONFIGURATION ---
-// IMPORTANT: In a real project, these should be stored in environment variables (.env file)
+// In a real project, these should be securely handled.
 const firebaseConfig = {
-  apiKey: "AIzaSyBVruE0hRVZisHlnnyuWBl-PZp3-DMp028",
-  authDomain: "pakages-provider.firebaseapp.com",
-  projectId: "pakages-provider",
-  storageBucket: "pakages-provider.appspot.com",
-  messagingSenderId: "109547136506",
-  appId: "1:109547136506:web:c9d34657d73b0fcc3ef043",
-  measurementId: "G-672LC3842S"
+    apiKey: "AIzaSyBVruE0hRVZisHlnnyuWBl-PZp3-DMp028",
+    authDomain: "pakages-provider.firebaseapp.com",
+    projectId: "pakages-provider",
+    storageBucket: "pakages-provider.appspot.com",
+    messagingSenderId: "109547136506",
+    appId: "1:109547136506:web:c9d34657d73b0fcc3ef043",
+    measurementId: "G-672LC3842S"
 };
 
 // Initialize Firebase
@@ -225,42 +227,42 @@ const Footer = ({ setPage }) => (
     <footer className="bg-white dark:bg-gray-800 mt-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 border-t dark:border-gray-700">
             <div className="grid grid-cols-2 md:grid-cols-5 gap-8 text-sm">
-                 <div>
-                     <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-3">Need help?</h3>
-                     <Button onClick={() => {}} variant="secondary" className="w-full justify-center">Support</Button>
-                 </div>
-                 <div>
-                     <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-3">Useful links</h3>
-                     <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-                         <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('developers')}} className="hover:text-blue-600 dark:hover:text-blue-400">For developers</a></li>
-                     </ul>
-                 </div>
-                 <div>
-                     <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-3">For users</h3>
-                     <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-                         <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('cookies')}} className="hover:text-blue-600 dark:hover:text-blue-400">Cookies</a></li>
-                         <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('delivery')}} className="hover:text-blue-600 dark:hover:text-blue-400">Delivery policy</a></li>
-                         <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('terms')}} className="hover:text-blue-600 dark:hover:text-blue-400">Terms and conditions</a></li>
-                         <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('privacy')}} className="hover:text-blue-600 dark:hover:text-blue-400">Privacy policy</a></li>
-                         <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('refund')}} className="hover:text-blue-600 dark:hover:text-blue-400">Refund policy</a></li>
-                     </ul>
-                 </div>
-                 <div>
-                     <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-3">GetOTP.net</h3>
-                     <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-                         <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('about')}} className="hover:text-blue-600 dark:hover:text-blue-400">About the service</a></li>
-                         <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('contacts')}} className="hover:text-blue-600 dark:hover:text-blue-400">Contacts</a></li>
-                         <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('rules')}} className="hover:text-blue-600 dark:hover:text-blue-400">Rules</a></li>
-                     </ul>
-                 </div>
-                 <div>
-                     <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-3">Social networks</h3>
-                     <div className="flex space-x-4">
-                         <a href="#" className="hover:opacity-80"><FacebookIcon /></a>
-                         <a href="#" className="hover:opacity-80"><TwitterIcon /></a>
-                         <a href="#" className="hover:opacity-80"><TelegramIcon /></a>
-                     </div>
-                 </div>
+                <div>
+                    <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-3">Need help?</h3>
+                    <Button onClick={() => {}} variant="secondary" className="w-full justify-center">Support</Button>
+                </div>
+                <div>
+                    <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-3">Useful links</h3>
+                    <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                        <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('developers')}} className="hover:text-blue-600 dark:hover:text-blue-400">For developers</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-3">For users</h3>
+                    <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                        <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('cookies')}} className="hover:text-blue-600 dark:hover:text-blue-400">Cookies</a></li>
+                        <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('delivery')}} className="hover:text-blue-600 dark:hover:text-blue-400">Delivery policy</a></li>
+                        <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('terms')}} className="hover:text-blue-600 dark:hover:text-blue-400">Terms and conditions</a></li>
+                        <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('privacy')}} className="hover:text-blue-600 dark:hover:text-blue-400">Privacy policy</a></li>
+                        <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('refund')}} className="hover:text-blue-600 dark:hover:text-blue-400">Refund policy</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-3">GetOTP.net</h3>
+                    <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                        <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('about')}} className="hover:text-blue-600 dark:hover:text-blue-400">About the service</a></li>
+                        <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('contacts')}} className="hover:text-blue-600 dark:hover:text-blue-400">Contacts</a></li>
+                        <li><a href="#" onClick={(e) => {e.preventDefault(); setPage('rules')}} className="hover:text-blue-600 dark:hover:text-blue-400">Rules</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 className="font-bold text-gray-800 dark:text-gray-200 mb-3">Social networks</h3>
+                    <div className="flex space-x-4">
+                        <a href="#" className="hover:opacity-80"><FacebookIcon /></a>
+                        <a href="#" className="hover:opacity-80"><TwitterIcon /></a>
+                        <a href="#" className="hover:opacity-80"><TelegramIcon /></a>
+                    </div>
+                </div>
             </div>
             <div className="mt-8 text-center text-xs text-gray-500 dark:text-gray-400">
                 GetOTP.net © 2016-{new Date().getFullYear()}
@@ -269,18 +271,17 @@ const Footer = ({ setPage }) => (
     </footer>
 );
 
-// --- API Call Helper ---
-// This function will call our secure Netlify proxy function
-const apiCall = async (providerName, endpoint, userToken) => {
+// --- UPDATED API Call Helper ---
+const apiCall = async (action, payload) => {
     try {
+        const idToken = auth.currentUser ? await auth.currentUser.getIdToken() : null;
         const response = await fetch('/.netlify/functions/api-proxy', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                // Send the user's Firebase token for authenticated requests
-                'Authorization': `Bearer ${userToken}` 
+                'Authorization': `Bearer ${idToken}` 
             },
-            body: JSON.stringify({ providerName, endpoint }),
+            body: JSON.stringify({ action, payload }),
         });
         if (!response.ok) {
             const errorData = await response.json();
@@ -312,65 +313,63 @@ const Sidebar = ({ user, setPage, onPurchase, showToast }) => {
     const [serverSearchTerm, setServerSearchTerm] = useState('');
 
     useEffect(() => {
-      const unsubServices = onSnapshot(collection(db, "services"), (snapshot) => {
-        const servicesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setServices(servicesData);
-        setLoading(prev => ({...prev, services: false}));
-      });
-      const unsubServers = onSnapshot(collection(db, "servers"), (snapshot) => {
-        const serverData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setServers(serverData);
-        setLoading(prev => ({...prev, servers: false}));
-      });
-      return () => { unsubServices(); unsubServers(); };
+        const unsubServices = onSnapshot(collection(db, "services"), (snapshot) => {
+            const servicesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setServices(servicesData);
+            setLoading(prev => ({...prev, services: false}));
+        });
+        const unsubServers = onSnapshot(collection(db, "servers"), (snapshot) => {
+            const serverData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setServers(serverData);
+            setLoading(prev => ({...prev, servers: false}));
+        });
+        return () => { unsubServices(); unsubServers(); };
     }, []);
 
     const getOperatorsAndPrices = async (service, country) => {
-      setOperators([]);
-      setSelectedOperator(null);
-      setLoading(prev => ({...prev, operators: true}));
-      try {
-          const userToken = user ? await auth.currentUser.getIdToken() : '';
-          const endpoint = `/guest/prices?country=${country.name}&product=${service.name.toLowerCase()}`;
-          const response = await apiCall("5sim", endpoint, userToken);
-          
-          if (response && response[country.name] && response[country.name][service.name.toLowerCase()]) {
-              const operatorsData = response[country.name][service.name.toLowerCase()];
-              const formattedOperators = Object.entries(operatorsData).map(([name, details]) => ({
-                  name,
-                  price: details.cost,
-                  qty: details.count,
-              }));
-              setOperators(formattedOperators);
-          } else {
-              setOperators([]);
-          }
-      } catch (error) {
-          console.error("Failed to fetch operators:", error);
-          showToast('Failed to fetch operators. Please try again.', 'error');
-          setOperators([]);
-      } finally {
-          setLoading(prev => ({...prev, operators: false}));
-      }
+        setOperators([]);
+        setSelectedOperator(null);
+        setLoading(prev => ({...prev, operators: true}));
+        try {
+            const response = await apiCall("getPrices", { country: country.name, product: service.name.toLowerCase() });
+            
+            if (response && response[country.name] && response[country.name][service.name.toLowerCase()]) {
+                const operatorsData = response[country.name][service.name.toLowerCase()];
+                const formattedOperators = Object.entries(operatorsData).map(([name, details]) => ({
+                    name,
+                    price: details.cost,
+                    qty: details.count,
+                }));
+                setOperators(formattedOperators);
+            } else {
+                setOperators([]);
+            }
+        } catch (error) {
+            console.error("Failed to fetch operators:", error);
+            showToast('Failed to fetch operators. Please try again.', 'error');
+            setOperators([]);
+        } finally {
+            setLoading(prev => ({...prev, operators: false}));
+        }
     };
 
     const handleServiceSelect = (service) => {
-      setSelectedService(service);
-      setSelectedServer(null);
-      setOperators([]);
-      setSelectedOperator(null);
-      showToast(`Selected: ${service.name}. Now select a country.`, 'info');
+        setSelectedService(service);
+        setSelectedServer(null);
+        setOperators([]);
+        setSelectedOperator(null);
+        showToast(`Selected: ${service.name}. Now select a country.`, 'info');
     };
 
     const handleServerSelect = (server) => {
-      if (!selectedService) {
-        showToast('Please select a service first.', 'error');
-        return;
-      }
-      setSelectedServer(server);
-      setSelectedOperator(null);
-      getOperatorsAndPrices(selectedService, server);
-      showToast(`Selected: ${server.location}. Now select an operator.`, 'info');
+        if (!selectedService) {
+            showToast('Please select a service first.', 'error');
+            return;
+        }
+        setSelectedServer(server);
+        setSelectedOperator(null);
+        getOperatorsAndPrices(selectedService, server);
+        showToast(`Selected: ${server.location}. Now select an operator.`, 'info');
     };
     
     const handleOperatorSelect = (operator) => {
@@ -442,20 +441,20 @@ const Sidebar = ({ user, setPage, onPurchase, showToast }) => {
                 <div>
                     <h3 className="font-bold mb-2 text-gray-800 dark:text-gray-200">2. Select country</h3>
                     <div className="relative mb-2">
-                           <input 
-                             type="text" 
-                             placeholder="Find country" 
-                             className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-transparent"
-                             value={serverSearchTerm}
-                             onChange={e => setServerSearchTerm(e.target.value)}
-                         />
-                         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                            <input 
+                               type="text" 
+                               placeholder="Find country" 
+                               className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-transparent"
+                               value={serverSearchTerm}
+                               onChange={e => setServerSearchTerm(e.target.value)}
+                           />
+                           <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     </div>
                     <div className={`mt-2 h-48 overflow-y-auto ${!selectedService ? 'opacity-50' : ''}`}>
                         {loading.servers ? <Spinner /> : displayedServers.map(server => (
                             <div key={server.id} onClick={() => selectedService && handleServerSelect(server)} 
                                 className={`flex items-center p-2 rounded-md ${!selectedService ? 'cursor-not-allowed' : 'cursor-pointer'} ${selectedServer?.id === server.id ? 'bg-blue-100 dark:bg-blue-900/50' : 'hover:bg-blue-50 dark:hover:bg-gray-700'}`}>
-                                {server.iso && <img src={`https://flagcdn.com/w20/${server.iso.toLowerCase()}.png`} alt={`${server.location} flag`} className="w-8 h-auto inline-block mr-3" />}
+                                {server.iso && <img src={`https://flagcdn.com/w20/${server.iso.toLowerCase()}.png`} onError={(e) => {e.target.style.display = 'none'}} alt={`${server.location} flag`} className="w-8 h-auto inline-block mr-3" />}
                                 <span className="font-medium text-gray-800 dark:text-gray-200">{server.location}</span>
                             </div>
                         ))}
@@ -472,21 +471,21 @@ const Sidebar = ({ user, setPage, onPurchase, showToast }) => {
                 {/* Step 3: Select Operator */}
                 {selectedServer && (
                     <div>
-                         <h3 className="font-bold mb-2 text-gray-800 dark:text-gray-200">3. Select operator</h3>
-                         <div className="mt-2 h-48 overflow-y-auto">
-                             {loading.operators ? <Spinner /> : 
-                                 operators.length > 0 ? operators.map(op => (
-                                 <div key={op.name} onClick={() => handleOperatorSelect(op)} 
-                                     className={`flex items-center justify-between p-2 hover:bg-blue-50 dark:hover:bg-gray-700 rounded-md cursor-pointer ${selectedOperator?.name === op.name ? 'bg-blue-100 dark:bg-blue-900/50' : ''}`}>
-                                     <span className="font-medium text-gray-800 dark:text-gray-200">{op.name}</span>
-                                     <div className="text-right text-sm">
-                                         <p className="text-gray-500 dark:text-gray-400">{op.qty} pcs.</p>
-                                         <p className="font-bold text-blue-600">{currencySymbol}{convertCurrency(op.price)}</p>
-                                     </div>
-                                 </div>
-                             )) : <p className="text-sm text-gray-500 text-center p-4">No operators found for this selection.</p>
-                             }
-                         </div>
+                        <h3 className="font-bold mb-2 text-gray-800 dark:text-gray-200">3. Select operator</h3>
+                        <div className="mt-2 h-48 overflow-y-auto">
+                            {loading.operators ? <Spinner /> : 
+                                operators.length > 0 ? operators.map(op => (
+                                <div key={op.name} onClick={() => handleOperatorSelect(op)} 
+                                    className={`flex items-center justify-between p-2 hover:bg-blue-50 dark:hover:bg-gray-700 rounded-md cursor-pointer ${selectedOperator?.name === op.name ? 'bg-blue-100 dark:bg-blue-900/50' : ''}`}>
+                                    <span className="font-medium text-gray-800 dark:text-gray-200">{op.name}</span>
+                                    <div className="text-right text-sm">
+                                        <p className="text-gray-500 dark:text-gray-400">{op.qty} pcs.</p>
+                                        <p className="font-bold text-blue-600">{currencySymbol}{convertCurrency(op.price)}</p>
+                                    </div>
+                                </div>
+                            )) : <p className="text-sm text-gray-500 text-center p-4">No operators found for this selection.</p>
+                            }
+                        </div>
                     </div>
                 )}
                 {selectedService && selectedServer && selectedOperator && (
@@ -844,10 +843,7 @@ const ActiveOrder = ({ user, orderData, onUpdateStatus, showToast }) => {
         const startPolling = () => {
             pollingRef.current = setInterval(async () => {
                 try {
-                    const userToken = await auth.currentUser.getIdToken();
-                    // Endpoint from documentation: /v1/user/check/$id
-                    const endpoint = `/user/check/${orderData.id}`;
-                    const updatedOrder = await apiCall(orderData.provider, endpoint, userToken);
+                    const updatedOrder = await apiCall("checkOrder", { orderId: orderData.id });
                     
                     if (updatedOrder.sms && updatedOrder.sms.length > 0) {
                         // SMS found, update Firestore and stop polling
@@ -915,9 +911,7 @@ const ActiveOrder = ({ user, orderData, onUpdateStatus, showToast }) => {
 
     const handleCancel = async () => {
         try {
-            const userToken = await auth.currentUser.getIdToken();
-            // Endpoint from documentation: /v1/user/cancel/$id
-            await apiCall(order.provider, `/user/cancel/${order.id}`, userToken);
+            await apiCall("cancelOrder", { orderId: order.id });
             onUpdateStatus(order.id, 'CANCELED');
         } catch (error) {
             showToast(`Error: ${error.message}`, 'error');
@@ -926,9 +920,7 @@ const ActiveOrder = ({ user, orderData, onUpdateStatus, showToast }) => {
 
     const handleFinish = async () => {
         try {
-            const userToken = await auth.currentUser.getIdToken();
-            // Endpoint from documentation: /v1/user/finish/$id
-            await apiCall(order.provider, `/user/finish/${order.id}`, userToken);
+            await apiCall("finishOrder", { orderId: order.id });
             onUpdateStatus(order.id, 'FINISHED');
         } catch (error) {
             showToast(`Error: ${error.message}`, 'error');
@@ -938,32 +930,32 @@ const ActiveOrder = ({ user, orderData, onUpdateStatus, showToast }) => {
     return (
         <main className="w-full md:w-2/3 lg:w-3/4">
             <Card className="p-6 animate-fade-in">
-                 <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Active Order</h1>
-                 <div className="space-y-4 text-gray-800 dark:text-gray-200">
-                      <p><strong>Service:</strong> {order.product}</p>
-                      <div className="flex items-center space-x-2">
-                          <strong>Phone Number:</strong> 
-                          <span className="font-mono bg-gray-200 dark:bg-gray-700 p-2 rounded">{order.phone}</span>
-                          <button onClick={() => handleCopy(order.phone)} className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600">
-                              {copied ? <CheckIcon /> : <ClipboardIcon />}
-                          </button>
-                      </div>
-                      <p><strong>Status:</strong> <span className={`font-bold ${order.sms ? 'text-green-500' : 'text-yellow-500'}`}>{order.status}</span></p>
-                      <div className="text-center my-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                          <p className="text-lg">Time Remaining</p>
-                          <p className={`text-4xl font-bold ${timeLeft < 60 ? 'text-red-500' : 'text-blue-600'}`}>{formatTime(timeLeft)}</p>
-                      </div>
-                      <div>
-                          <h3 className="font-bold mb-2">Received SMS:</h3>
-                          <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-md min-h-[100px] flex items-center justify-center font-mono text-lg tracking-widest">
-                              {order.sms && order.sms.length > 0 ? order.sms[0].text : <Spinner />}
-                          </div>
-                      </div>
-                 </div>
-                 <div className="mt-6 flex justify-end space-x-4">
-                      <Button variant="secondary" onClick={handleCancel}>Cancel Order</Button>
-                      <Button onClick={handleFinish}>Mark as Finished</Button>
-                 </div>
+                <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Active Order</h1>
+                <div className="space-y-4 text-gray-800 dark:text-gray-200">
+                    <p><strong>Service:</strong> {order.product}</p>
+                    <div className="flex items-center space-x-2">
+                        <strong>Phone Number:</strong> 
+                        <span className="font-mono bg-gray-200 dark:bg-gray-700 p-2 rounded">{order.phone}</span>
+                        <button onClick={() => handleCopy(order.phone)} className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600">
+                            {copied ? <CheckIcon /> : <ClipboardIcon />}
+                        </button>
+                    </div>
+                    <p><strong>Status:</strong> <span className={`font-bold ${order.sms ? 'text-green-500' : 'text-yellow-500'}`}>{order.status}</span></p>
+                    <div className="text-center my-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                        <p className="text-lg">Time Remaining</p>
+                        <p className={`text-4xl font-bold ${timeLeft < 60 ? 'text-red-500' : 'text-blue-600'}`}>{formatTime(timeLeft)}</p>
+                    </div>
+                    <div>
+                        <h3 className="font-bold mb-2">Received SMS:</h3>
+                        <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-md min-h-[100px] flex items-center justify-center font-mono text-lg tracking-widest">
+                            {order.sms && order.sms.length > 0 ? order.sms[0].text : <Spinner />}
+                        </div>
+                    </div>
+                </div>
+                <div className="mt-6 flex justify-end space-x-4">
+                     <Button variant="secondary" onClick={handleCancel}>Cancel Order</Button>
+                     <Button onClick={handleFinish}>Mark as Finished</Button>
+                </div>
             </Card>
         </main>
     );
@@ -1012,8 +1004,6 @@ const MainLayout = ({ user, page, setPage, profile, showToast }) => {
         setIsLoading(true);
         
         try {
-            const userToken = await auth.currentUser.getIdToken();
-
             await runTransaction(db, async (transaction) => {
                 const userRef = doc(db, "users", user.uid);
                 const userDoc = await transaction.get(userRef);
@@ -1027,8 +1017,11 @@ const MainLayout = ({ user, page, setPage, profile, showToast }) => {
                     throw new Error("Insufficient balance. Please recharge your account.");
                 }
 
-                const endpoint = `/user/buy/activation/${server.name}/${operator.name}/${service.name.toLowerCase()}`;
-                const purchaseData = await apiCall(service.provider, endpoint, userToken);
+                const purchaseData = await apiCall("buyNumber", {
+                    service: service,
+                    server: server,
+                    operator: operator,
+                });
                 
                 if (purchaseData.error) {
                     throw new Error(purchaseData.error);
@@ -1040,7 +1033,7 @@ const MainLayout = ({ user, page, setPage, profile, showToast }) => {
                     phone: purchaseData.phone,
                     product: service.name,
                     price: itemPrice,
-                    provider: service.provider,
+                    provider: '5sim', // hardcoded for this provider
                     operator: operator.name,
                     server: server.name,
                     status: purchaseData.status,

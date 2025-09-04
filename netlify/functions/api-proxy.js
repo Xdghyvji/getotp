@@ -1,119 +1,103 @@
-// --- Netlify Function: /netlify/functions/api-proxy.js ---
-// This function dynamically fetches API provider details from Firestore.
+const admin = require('firebase-admin');
+const fetch = require('node-fetch');
 
-import admin from 'firebase-admin';
-
-// Global variables that will be populated once
-let db;
-let apiProvidersCache = null;
-
-const initializeLibraries = async () => {
-  if (db) return;
-
-  // Initialize Firebase Admin SDK
-  try {
-    const { FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY } = process.env;
-
-    if (!FIREBASE_PROJECT_ID || !FIREBASE_CLIENT_EMAIL || !FIREBASE_PRIVATE_KEY) {
-      throw new Error("Missing one or more required Firebase Admin environment variables.");
-    }
-    
-    // Check if a Firebase app has already been initialized to prevent multiple initializations.
-    if (!admin.apps.length) {
-      admin.initializeApp({
+// Initialize Firebase Admin SDK
+if (!admin.apps.length) {
+    admin.initializeApp({
         credential: admin.credential.cert({
-          projectId: FIREBASE_PROJECT_ID,
-          clientEmail: FIREBASE_CLIENT_EMAIL,
-          // The private key may contain literal `\n` characters which need to be replaced with actual newlines
-          privateKey: FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
-        })
-      });
-    }
-  } catch (e) {
-    console.error('Firebase Admin initialization error:', e);
-    throw new Error('Server configuration error: Firebase Admin not initialized.');
-  }
-  db = admin.firestore();
-};
-
-// --- Function to get (and cache) API providers from Firestore ---
-async function getApiProviders() {
-    // Use cached data if it exists and is less than 5 minutes old
-    if (apiProvidersCache) {
-        return apiProvidersCache;
-    }
-    
-    console.log('Fetching API providers from Firestore...');
-    const providersSnapshot = await db.collection('api_providers').get();
-    const providers = providersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    
-    // Store in cache
-    apiProvidersCache = providers;
-    
-    // Optional: Clear cache after 5 minutes to fetch fresh data
-    setTimeout(() => { apiProvidersCache = null; }, 300000); 
-
-    return providers;
+            projectId: process.env.FIREBASE_PROJECT_ID,
+            privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        }),
+    });
 }
 
-
-exports.handler = async function(event, context) {
-  await initializeLibraries();
-  
-  // Only allow POST requests
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
-  }
-
-  // Check if Firebase Admin SDK was initialized correctly
-  if (!admin.apps.length) {
-      return { statusCode: 500, body: JSON.stringify({ error: 'Server configuration error: Firebase Admin not initialized.' }) };
-  }
-
-  try {
-    const { provider, endpoint, method = 'GET', body = null } = JSON.parse(event.body);
-
-    if (!provider || !endpoint) {
-      return { statusCode: 400, body: JSON.stringify({ error: 'Provider and endpoint are required.' }) };
+// Handler for the Netlify Function
+exports.handler = async (event, context) => {
+    if (event.httpMethod !== 'POST') {
+        return { statusCode: 405, body: 'Method Not Allowed' };
     }
 
-    // Fetch all providers from Firestore (or cache)
-    const providers = await getApiProviders();
-    const targetProvider = providers.find(p => p.name === provider);
+    try {
+        const { authorization } = event.headers;
+        const idToken = authorization?.split('Bearer ')[1];
+        
+        if (!idToken) {
+            return { statusCode: 401, body: JSON.stringify({ error: 'Authentication token is required.' }) };
+        }
+        
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+        const userId = decodedToken.uid;
+        
+        const { action, payload } = JSON.parse(event.body);
 
-    if (!targetProvider) {
-      return { statusCode: 400, body: JSON.stringify({ error: `Unsupported or unconfigured provider: ${provider}` }) };
+        let apiUrl = '';
+        let apiHeaders = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.FIVESIM_API_KEY}`,
+            'Accept': 'application/json'
+        };
+
+        let responseData;
+        
+        switch (action) {
+            case 'getPrices':
+                // Endpoint: /v1/guest/prices?country=$country&product=$product
+                // Note: guest endpoints do not require the Authorization header
+                const { country, product } = payload;
+                const priceQuery = new URLSearchParams();
+                if (country) priceQuery.append('country', country);
+                if (product) priceQuery.append('product', product);
+                apiUrl = `https://5sim.net/v1/guest/prices?${priceQuery.toString()}`;
+                apiHeaders = { 'Accept': 'application/json' };
+                responseData = await fetch(apiUrl, { headers: apiHeaders }).then(res => res.json());
+                break;
+
+            case 'buyNumber':
+                // Endpoint: /v1/user/buy/activation/$country/$operator/$product
+                const { service, server, operator } = payload;
+                apiUrl = `https://5sim.net/v1/user/buy/activation/${server.name}/${operator.name}/${service.name.toLowerCase()}`;
+                responseData = await fetch(apiUrl, { headers: apiHeaders }).then(res => res.json());
+                break;
+
+            case 'checkOrder':
+                // Endpoint: /v1/user/check/$id
+                const { orderId } = payload;
+                apiUrl = `https://5sim.net/v1/user/check/${orderId}`;
+                responseData = await fetch(apiUrl, { headers: apiHeaders }).then(res => res.json());
+                break;
+                
+            case 'cancelOrder':
+                // Endpoint: /v1/user/cancel/$id
+                apiUrl = `https://5sim.net/v1/user/cancel/${payload.orderId}`;
+                responseData = await fetch(apiUrl, { headers: apiHeaders }).then(res => res.json());
+                break;
+                
+            case 'finishOrder':
+                // Endpoint: /v1/user/finish/$id
+                apiUrl = `https://5sim.net/v1/user/finish/${payload.orderId}`;
+                responseData = await fetch(apiUrl, { headers: apiHeaders }).then(res => res.json());
+                break;
+
+            default:
+                return { statusCode: 400, body: JSON.stringify({ error: 'Invalid action specified.' }) };
+        }
+
+        // Check for common API errors from 5sim.net
+        if (responseData && responseData.status === '400') {
+             throw new Error(responseData.error || '5sim.net API returned an error.');
+        }``
+
+        return {
+            statusCode: 200,
+            body: JSON.stringify(responseData),
+        };
+
+    } catch (error) {
+        console.error('API Proxy error:', error);
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: error.message || 'An internal error occurred.' }),
+        };
     }
-    
-    const { apiKey, baseUrl } = targetProvider;
-    const apiUrl = `${baseUrl}${endpoint}`;
-    
-    // --- DEBUGGING IMPROVEMENT: Log the exact URL being called ---
-    console.log(`Making API call to: ${method} ${apiUrl}`);
-
-    const headers = {
-      'Authorization': `Bearer ${apiKey}`,
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-    };
-
-    const options = {
-      method: method,
-      headers: headers,
-      body: body ? JSON.stringify(body) : undefined,
-    };
-    
-    // Use native Node.js fetch API for robust compatibility
-    const response = await fetch(apiUrl, options);
-    const data = await response.json();
-
-    return {
-      statusCode: response.status,
-      body: JSON.stringify(data),
-    };
-
-  } catch (error) {
-    console.error('Proxy Error:', error);
-    return { statusCode: 500, body: JSON.stringify({ error: 'An internal server error occurred.' }) };
-  }
 };
