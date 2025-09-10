@@ -112,15 +112,15 @@ exports.handler = async (event, context) => {
                 }
                 const vendorHeaders = { 'Authorization': `Bearer ${vendorApiKey}`, 'Accept': 'application/json' };
                 
-                const pricesResponse = await fetch(`${providerData.baseUrl}/vendor/prices`, { headers: vendorHeaders });
+                const pricesResponse1 = await fetch(`${providerData.baseUrl}/vendor/prices`, { headers: vendorHeaders });
                 const countriesResponse = await fetch(`${providerData.baseUrl}/guest/countries`, { headers: { 'Accept': 'application/json' } });
                 
-                if (!pricesResponse.ok || !countriesResponse.ok) {
-                    const errorText = await (pricesResponse.ok ? countriesResponse.text() : pricesResponse.text());
-                    throw new Error(`Failed to fetch data from provider: ${pricesResponse.status} - ${errorText}`);
+                if (!pricesResponse1.ok || !countriesResponse.ok) {
+                    const errorText = await (pricesResponse1.ok ? countriesResponse.text() : pricesResponse1.text());
+                    throw new Error(`Failed to fetch data from provider: ${pricesResponse1.status} - ${errorText}`);
                 }
                 
-                const pricesData = await pricesResponse.json();
+                const pricesData = await pricesResponse1.json();
                 const countriesData = await countriesResponse.json();
 
                 const batch = db.batch();
