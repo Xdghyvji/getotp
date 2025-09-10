@@ -99,6 +99,10 @@ exports.handler = async (event, context) => {
                 break;
             case 'getOperatorsAndPrices':
                 const pricesResponse = await fetch(`${providerData.baseUrl}/guest/prices?country=${payload.country}&product=${payload.product}`, { headers: { 'Accept': 'application/json' } });
+                if (!pricesResponse.ok) {
+                    const errorText = await pricesResponse.text();
+                    throw new Error(`External API Error: ${pricesResponse.status} ${pricesResponse.statusText} - ${errorText}`);
+                }
                 responseData = await pricesResponse.json();
                 break;
             case 'syncProviderData':
