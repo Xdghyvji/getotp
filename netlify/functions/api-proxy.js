@@ -1,5 +1,6 @@
 const admin = require('firebase-admin');
-const fetch = require('node-fetch');
+// We no longer use 'require' for node-fetch as it's an ES Module.
+// const fetch = require('node-fetch');
 
 // Initialize Firebase Admin SDK
 if (!admin.apps.length) {
@@ -15,6 +16,9 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 exports.handler = async (event, context) => {
+    // Dynamically import node-fetch here to work with its ES Module format
+    const { default: fetch } = await import('node-fetch');
+
     if (event.httpMethod !== 'POST') {
         return { statusCode: 405, body: 'Method Not Allowed' };
     }
@@ -98,12 +102,12 @@ exports.handler = async (event, context) => {
                 responseData = await fetch(apiUrl, { headers: apiHeaders }).then(res => res.json());
                 break;
             case 'getOperatorsAndPrices':
-                const pricesResponse = await fetch(`${providerData.baseUrl}/guest/prices?country=${payload.country}&product=${payload.product}`, { headers: { 'Accept': 'application/json' } });
-                if (!pricesResponse.ok) {
-                    const errorText = await pricesResponse.text();
-                    throw new Error(`External API Error: ${pricesResponse.status} ${pricesResponse.statusText} - ${errorText}`);
+                const pricesResponseForOperators = await fetch(`${providerData.baseUrl}/guest/prices?country=${payload.country}&product=${payload.product}`, { headers: { 'Accept': 'application/json' } });
+                if (!pricesResponseForOperators.ok) {
+                    const errorText = await pricesResponseForOperators.text();
+                    throw new Error(`External API Error: ${pricesResponseForOperators.status} ${pricesResponseForOperators.statusText} - ${errorText}`);
                 }
-                responseData = await pricesResponse.json();
+                responseData = await pricesResponseForOperators.json();
                 break;
             case 'syncProviderData':
                 const vendorApiKey = providerData.vendorApiKey;
