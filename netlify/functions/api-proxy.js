@@ -15,7 +15,8 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
-exports.handler = async (event, context) => {
+// Change from module.exports to ES Module export
+export async function handler(event, context) {
     // Dynamically import node-fetch here to work with its ES Module format
     const { default: fetch } = await import('node-fetch');
 
