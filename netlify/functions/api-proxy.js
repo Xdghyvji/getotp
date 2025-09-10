@@ -1,184 +1,142 @@
-const admin = require('firebase-admin');
-// We no longer use 'require' for node-fetch as it's an ES Module.
-// const fetch = require('node-fetch');
+// --- CORRECTED Netlify Function: /netlify/functions/api-proxy.js ---
+// This version uses a consistent ES Module import style to prevent runtime errors.
 
-// Initialize Firebase Admin SDK
-if (!admin.apps.length) {
-    admin.initializeApp({
-        credential: admin.credential.cert({
-            projectId: process.env.FIREBASE_PROJECT_ID,
-            privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        }),
-    });
-}
-
-const db = admin.firestore();
-
-// Change from module.exports to ES Module export
 export async function handler(event, context) {
-    // Dynamically import node-fetch here to work with its ES Module format
-    const { default: fetch } = await import('node-fetch');
+    // Dynamically import dependencies using a modern ES Module approach
+    const { default: admin } = await import('firebase-admin');
+    const { default: fetch } = await import('node-fetch');
 
-    if (event.httpMethod !== 'POST') {
-        return { statusCode: 405, body: 'Method Not Allowed' };
-    }
+    // Initialize Firebase Admin SDK (ensuring it only runs once)
+    if (!admin.apps.length) {
+        try {
+            admin.initializeApp({
+                credential: admin.credential.cert({
+                    projectId: process.env.FIREBASE_PROJECT_ID,
+                    privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+                    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+                }),
+            });
+        } catch (e) {
+            console.error('Firebase Admin initialization error:', e);
+            return {
+                statusCode: 500,
+                body: JSON.stringify({ error: 'Server configuration error.' })
+            };
+        }
+    }
 
-    try {
-        const { authorization } = event.headers;
-        const idToken = authorization?.split('Bearer ')[1];
-        
-        if (!idToken) {
-            return { statusCode: 401, body: JSON.stringify({ error: 'Authentication token is required.' }) };
-        }
-        
-        const decodedToken = await admin.auth().verifyIdToken(idToken);
-        const userId = decodedToken.uid;
-        
-        const { action, payload } = JSON.parse(event.body);
+    const db = admin.firestore();
 
-        // Fetch API credentials from Firestore
-        const providerRef = db.collection('api_providers').doc(payload.provider || '5sim');
-        const providerDoc = await providerRef.get();
-        if (!providerDoc.exists) {
-            return { statusCode: 404, body: JSON.stringify({ error: `API provider '${payload.provider || '5sim'}' not found.` }) };
-        }
-        const providerData = providerDoc.data();
-        
-        let apiUrl = '';
-        let apiHeaders = {};
-        let responseData;
-        
-        switch (action) {
-            case 'getPrices':
-                // Note: guest endpoints do not require an Authorization header
-                const { country, product } = payload;
-                const priceQuery = new URLSearchParams();
-                if (country) priceQuery.append('country', country);
-                if (product) priceQuery.append('product', product);
-                apiUrl = `${providerData.baseUrl}/guest/prices?${priceQuery.toString()}`;
-                apiHeaders = { 'Accept': 'application/json' };
-                responseData = await fetch(apiUrl, { headers: apiHeaders }).then(res => res.json());
-                break;
+    if (event.httpMethod !== 'POST') {
+        return { statusCode: 405, body: 'Method Not Allowed' };
+    }
 
-            case 'buyNumber':
-                const { service, server, operator } = payload;
-                apiUrl = `${providerData.baseUrl}/user/buy/activation/${server.name}/${operator.name}/${service.name.toLowerCase()}`;
-                apiHeaders = {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${providerData.apiKey}`,
-                    'Accept': 'application/json'
-                };
-                responseData = await fetch(apiUrl, { headers: apiHeaders }).then(res => res.json());
-                break;
+    try {
+        const { authorization } = event.headers;
+        const idToken = authorization?.split('Bearer ')[1];
+        
+        if (!idToken) {
+            // For guest actions, we don't need a token, so we proceed.
+            // A check will be done within the switch case for protected actions.
+        } else {
+            // If a token is provided, verify it.
+            const decodedToken = await admin.auth().verifyIdToken(idToken);
+            // You can use decodedToken.uid if needed for protected routes.
+        }
+        
+        const { action, payload } = JSON.parse(event.body);
 
-            case 'checkOrder':
-                const { orderId } = payload;
-                apiUrl = `${providerData.baseUrl}/user/check/${orderId}`;
-                apiHeaders = {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${providerData.apiKey}`,
-                    'Accept': 'application/json'
-                };
-                responseData = await fetch(apiUrl, { headers: apiHeaders }).then(res => res.json());
-                break;
-                
-            case 'cancelOrder':
-                apiUrl = `${providerData.baseUrl}/user/cancel/${payload.orderId}`;
-                apiHeaders = {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${providerData.apiKey}`,
-                    'Accept': 'application/json'
-                };
-                responseData = await fetch(apiUrl, { headers: apiHeaders }).then(res => res.json());
-                break;
-                
-            case 'finishOrder':
-                apiUrl = `${providerData.baseUrl}/user/finish/${payload.orderId}`;
-                apiHeaders = {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${providerData.apiKey}`,
-                    'Accept': 'application/json'
-                };
-                responseData = await fetch(apiUrl, { headers: apiHeaders }).then(res => res.json());
-                break;
-            case 'getOperatorsAndPrices':
-                const pricesResponseForOperators = await fetch(`${providerData.baseUrl}/guest/prices?country=${payload.country}&product=${payload.product}`, { headers: { 'Accept': 'application/json' } });
-                if (!pricesResponseForOperators.ok) {
-                    const errorText = await pricesResponseForOperators.text();
-                    throw new Error(`External API Error: ${pricesResponseForOperators.status} ${pricesResponseForOperators.statusText} - ${errorText}`);
+        // Fetch API provider details from Firestore
+        const providerRef = db.collection('api_providers').doc(payload.provider || '5sim');
+        const providerDoc = await providerRef.get();
+        if (!providerDoc.exists) {
+            return { statusCode: 404, body: JSON.stringify({ error: `API provider '${payload.provider || '5sim'}' not found.` }) };
+        }
+        const providerData = providerDoc.data();
+        
+        let apiUrl = '';
+        let apiHeaders = {};
+        let responseData;
+        
+        switch (action) {
+            case 'getOperatorsAndPrices': {
+                const { country, product } = payload;
+                apiUrl = `${providerData.baseUrl}/guest/prices?country=${country}&product=${product}`;
+                apiHeaders = { 'Accept': 'application/json' };
+                const apiResponse = await fetch(apiUrl, { headers: apiHeaders });
+                 if (!apiResponse.ok) {
+                    const errorText = await apiResponse.text();
+                    throw new Error(`External API Error: ${apiResponse.status} ${apiResponse.statusText} - ${errorText}`);
                 }
-                responseData = await pricesResponseForOperators.json();
+                responseData = await apiResponse.json();
                 break;
-            case 'syncProviderData':
-                const vendorApiKey = providerData.vendorApiKey;
-                if (!vendorApiKey) {
-                    throw new Error('FIVESIM_VENDOR_API_KEY is not set for this provider in Firestore.');
-                }
-                const vendorHeaders = { 'Authorization': `Bearer ${vendorApiKey}`, 'Accept': 'application/json' };
-                
-                const pricesResponse1 = await fetch(`${providerData.baseUrl}/vendor/prices`, { headers: vendorHeaders });
-                const countriesResponse = await fetch(`${providerData.baseUrl}/guest/countries`, { headers: { 'Accept': 'application/json' } });
-                
-                if (!pricesResponse1.ok || !countriesResponse.ok) {
-                    const errorText = await (pricesResponse1.ok ? countriesResponse.text() : pricesResponse1.text());
-                    throw new Error(`Failed to fetch data from provider: ${pricesResponse1.status} - ${errorText}`);
-                }
-                
-                const pricesData = await pricesResponse1.json();
-                const countriesData = await countriesResponse.json();
+            }
 
-                const batch = db.batch();
-                
-                // 1. Process and save services
-                const servicesCollectionRef = db.collection('services');
-                const uniqueServices = new Set();
-                pricesData.Prices.forEach(price => uniqueServices.add(price.ProductName));
-        
-                for (const serviceName of Array.from(uniqueServices)) {
-                    const serviceRef = servicesCollectionRef.doc(serviceName);
-                    batch.set(serviceRef, {
-                        name: serviceName,
-                        icon: null,
-                        provider: providerData.name,
-                        status: 'active',
-                        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-                    }, { merge: true });
-                }
-        
-                // 2. Process and save countries (servers)
-                const serversCollectionRef = db.collection('servers');
-                const servers = Object.keys(countriesData).map(key => ({
-                    name: key,
-                    location: countriesData[key].text_en,
-                    iso: Object.keys(countriesData[key].iso)[0],
-                    status: 'active',
-                }));
-                
-                servers.forEach(server => {
-                    const serverRef = serversCollectionRef.doc(server.name);
-                    batch.set(serverRef, server, { merge: true });
-                });
-        
-                await batch.commit();
+            case 'buyNumber': {
+                 // This is a protected action, ensure token was valid
+                if (!idToken) return { statusCode: 401, body: JSON.stringify({ error: 'Authentication is required for this action.' }) };
+                const { service, server, operator } = payload;
+                apiUrl = `${providerData.baseUrl}/user/buy/activation/${server.name}/${operator.name}/${service.name.toLowerCase()}`;
+                apiHeaders = {
+                    'Authorization': `Bearer ${providerData.apiKey}`,
+                    'Accept': 'application/json'
+                };
+                const apiResponse = await fetch(apiUrl, { headers: apiHeaders });
+                responseData = await apiResponse.json();
+                break;
+            }
 
-                return { message: `Successfully synced ${uniqueServices.size} services and ${servers.length} countries.` };
+            case 'checkOrder': {
+                if (!idToken) return { statusCode: 401, body: JSON.stringify({ error: 'Authentication is required for this action.' }) };
+                const { orderId } = payload;
+                apiUrl = `${providerData.baseUrl}/user/check/${orderId}`;
+                apiHeaders = {
+                    'Authorization': `Bearer ${providerData.apiKey}`,
+                    'Accept': 'application/json'
+                };
+                const apiResponse = await fetch(apiUrl, { headers: apiHeaders });
+                responseData = await apiResponse.json();
+                break;
+            }
+                
+            case 'cancelOrder': {
+                if (!idToken) return { statusCode: 401, body: JSON.stringify({ error: 'Authentication is required for this action.' }) };
+                apiUrl = `${providerData.baseUrl}/user/cancel/${payload.orderId}`;
+                apiHeaders = {
+                    'Authorization': `Bearer ${providerData.apiKey}`,
+                    'Accept': 'application/json'
+                };
+                const apiResponse = await fetch(apiUrl, { headers: apiHeaders });
+                responseData = await apiResponse.json();
+                break;
+            }
+                
+            case 'finishOrder': {
+                if (!idToken) return { statusCode: 401, body: JSON.stringify({ error: 'Authentication is required for this action.' }) };
+                apiUrl = `${providerData.baseUrl}/user/finish/${payload.orderId}`;
+                apiHeaders = {
+                    'Authorization': `Bearer ${providerData.apiKey}`,
+                    'Accept': 'application/json'
+                };
+                const apiResponse = await fetch(apiUrl, { headers: apiHeaders });
+                responseData = await apiResponse.json();
+                break;
+            }
+          
+            default:
+                return { statusCode: 400, body: JSON.stringify({ error: 'Invalid action specified.' }) };
+        }
 
-            default:
-                return { statusCode: 400, body: JSON.stringify({ error: 'Invalid action specified.' }) };
-        }
+        return {
+            statusCode: 200,
+            body: JSON.stringify(responseData),
+        };
 
-        // Return a response for successful calls that don't need to be handled above
-        return {
-            statusCode: 200,
-            body: JSON.stringify(responseData),
-        };
-
-    } catch (error) {
-        console.error('API Proxy error:', error);
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ error: error.message || 'An internal error occurred.' }),
-        };
-    }
-};
+    } catch (error) {
+        console.error('API Proxy error:', error);
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: error.message || 'An internal error occurred.' }),
+        };
+    }
+}
