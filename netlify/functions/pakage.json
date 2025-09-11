@@ -1,16 +1,16 @@
 {
-    "name": "netlify-functions",
-    "version": "1.0.0",
-    "description": "Dependencies for Netlify serverless functions",
-    "main": "api-proxy.js",
-    "scripts": {
-      "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "author": "",
-    "license": "ISC",
-    "dependencies": {
-      "firebase-admin": "^11.11.1"
-    }
+  "name": "netlify-functions",
+  "version": "1.0.0",
+  "description": "Dependencies for Netlify serverless functions",
+  "main": "api-proxy.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.7.2",
+    "firebase-admin": "^11.11.1"
   }
-  
-  
+}
+

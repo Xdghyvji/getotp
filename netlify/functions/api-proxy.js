@@ -1,7 +1,8 @@
-// --- STABLE Netlify Function: /netlify/functions/api-proxy.js (for Admin Panel) ---
-// This version uses Node.js's native fetch and removes the external 'node-fetch' dependency.
+// --- ROBUST Netlify Function: for Admin Panel ---
+// This version uses 'axios' for stable and reliable HTTP requests.
 
 const admin = require('firebase-admin');
+const axios = require('axios');
 
 // Initialize Firebase Admin SDK
 try {
@@ -19,16 +20,11 @@ const db = admin.firestore();
 let apiProvidersCache = null;
 
 async function getApiProviders() {
-    if (apiProvidersCache) {
-        return apiProvidersCache;
-    }
-    
+    if (apiProvidersCache) return apiProvidersCache;
     const providersSnapshot = await db.collection('api_providers').get();
     const providers = providersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    
     apiProvidersCache = providers;
-    setTimeout(() => { apiProvidersCache = null; }, 300000); 
-
+    setTimeout(() => { apiProvidersCache = null; }, 300000); // Cache for 5 minutes
     return providers;
 }
 
@@ -38,7 +34,7 @@ exports.handler = async function(event, context) {
   }
 
   if (!admin.apps.length) {
-      return { statusCode: 500, body: JSON.stringify({ error: 'Server configuration error: Firebase Admin not initialized.' }) };
+      return { statusCode: 500, body: JSON.stringify({ error: 'Server configuration error.' }) };
   }
 
   try {
@@ -52,39 +48,38 @@ exports.handler = async function(event, context) {
     const targetProvider = providers.find(p => p.name === provider);
 
     if (!targetProvider) {
-      return { statusCode: 400, body: JSON.stringify({ error: `Unsupported or unconfigured provider: ${provider}` }) };
+      return { statusCode: 400, body: JSON.stringify({ error: `Unsupported provider: ${provider}` }) };
     }
     
     const { apiKey, baseUrl } = targetProvider;
     const apiUrl = `${baseUrl}${endpoint}`;
     
-    console.log(`Making API call to: ${method} ${apiUrl}`);
-
-    const headers = {
-      'Authorization': `Bearer ${apiKey}`,
-      'Accept': 'application/json',
+    const config = {
+      method: method.toLowerCase(),
+      url: apiUrl,
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Accept': 'application/json',
+      }
     };
 
-    const options = {
-      method: method,
-      headers: headers,
-    };
-
-    if (method !== 'GET' && body) {
-      options.body = JSON.stringify(body);
-      headers['Content-Type'] = 'application/json';
+    if (method.toUpperCase() !== 'GET' && body) {
+      config.data = body;
+      config.headers['Content-Type'] = 'application/json';
     }
 
-    const response = await fetch(apiUrl, options);
-    const data = await response.json();
+    const response = await axios(config);
 
     return {
       statusCode: response.status,
-      body: JSON.stringify(data),
+      body: JSON.stringify(response.data),
     };
 
   } catch (error) {
-    console.error('Proxy Error:', error);
-    return { statusCode: 500, body: JSON.stringify({ error: 'An internal server error occurred.' }) };
+    console.error('Admin Proxy Error:', error.response ? error.response.data : error.message);
+    return { 
+        statusCode: error.response ? error.response.status : 500,
+        body: JSON.stringify({ error: error.response ? error.response.data : 'An internal server error occurred.' }) 
+    };
   }
 };
